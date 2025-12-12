@@ -25,3 +25,6 @@ app/artifacts/
 # OS
 .DS_Store
 Thumbs.db
+
+# MLflow
+mlruns

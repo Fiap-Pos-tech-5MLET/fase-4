@@ -26,7 +26,9 @@ class ModelTrainer:
 
     def train(self, train_loader, epochs=10):
         self.model.train()
+        loss_history = []
         for i in range(epochs):
+            batch_loss = 0
             for seq, labels in train_loader:
                 seq = seq.to(self.device)
                 labels = labels.to(self.device)
@@ -37,9 +39,13 @@ class ModelTrainer:
                 single_loss = self.criterion(y_pred.squeeze(), labels)
                 single_loss.backward()
                 self.optimizer.step()
+                batch_loss = single_loss.item()
+            
+            loss_history.append(batch_loss)
 
             if i % 5 == 0:
-                print(f'Epoch: {i} Loss: {single_loss.item():.5f}')
+                print(f'Epoch: {i} Loss: {batch_loss:.5f}')
+        return loss_history
 
     def evaluate(self, test_loader, scaler):
         self.model.eval()

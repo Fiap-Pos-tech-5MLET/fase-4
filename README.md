@@ -104,5 +104,15 @@ c:\Projetos\Leonardo\PosTech\Fase4\TechChallenge\Antigravity\
     - **Saída**: Camada linear projetando para 1 valor (Fechamento Previsto).
 - **Scaler**: MinMaxScaler (0, 1) para normalizar os dados de entrada para um gradiente descendente estável.
 
-## Monitoramento
-A aplicação registra o progresso do treinamento (Perda/Loss por época) e requisições da API na saída padrão (stdout), que pode ser visualizada no terminal ou nos logs do Docker.
+## Monitoramento e MLflow
+O projeto utiliza **MLflow** para rastreamento de experimentos. Todas as execuções de treinamento (parâmetros, métricas e modelos) são registradas automaticamente.
+
+Para visualizar o painel do MLflow:
+```bash
+
+mlflow ui --host 0.0.0.0 --port 5001
+
+```
+Acesse `http://localhost:5001` no seu navegador.
+
+A aplicação também registra o progresso do treinamento (Perda/Loss por época) e requisições da API na saída padrão (stdout).
