@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/artifacts:/app/app/artifacts
+    environment:
+      - PYTHONUNBUFFERED=1

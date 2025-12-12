@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+
+# Project Artifacts (Generated Models & Scalers)
+app/artifacts/
+*.pth
+*.pkl
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
