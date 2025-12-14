@@ -1,11 +1,10 @@
-version: '3.8'
-
 services:
-  api:
+  fastapi:
     build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./app/artifacts:/app/app/artifacts
     environment:
-      - PYTHONUNBUFFERED=1
+      - PROJECT_NAME=API de Predição de Diabetes
+      - SECRET_KEY=5MLET
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - ALGORITHM=HS256
+      - MODEL_REPO_ID=lfjmachado/FIAP_TC_FASE3_DIABETE_FOREST
+      - MODEL_FILENAME=melhor_modelo_diabetes.pkl
