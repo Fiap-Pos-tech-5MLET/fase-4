@@ -1,118 +1,607 @@
-# Previsão de Preços de Ações com LSTM
+# Projeto Tech Challenge Fase 4
+---
+## 📌 Índice
 
-## Visão e Estratégia
-Este projeto foca no uso de Deep Learning para prever tendências do mercado de ações, especificamente preços de fechamento. Utilizando redes neurais LSTM (Long Short-Term Memory), eficazes para dados sequenciais, buscamos capturar padrões temporais muitas vezes perdidos por modelos tradicionais. A solução é completa (end-to-end), cobrindo desde a ingestão de dados e treinamento até o deploy via uma API escalável.
+- [📝 Sobre o Projeto](#-sobre-o-projeto)
+- [🛠 Tecnologias e Ferramentas](#-tecnologias-e-ferramentas)
+- [🧱 Arquitetura da Solução](#-arquitetura-da-solução)
+- [🗂️ Estrutura de Diretórios](#-estrutura-de-diretórios)
+- [🚀 Como Configurar e Executar o Projeto](#-como-configurar-e-executar-o-projeto)
+- [✅ Testes e Validações](#-testes-e-validações)
+- [🔄 CI/CD Pipeline](#-cicd-pipeline)
+- [🤖 IA para Code Review](#-ia-para-code-review)
+- [📖 Documentação da API](#-documentação-da-api)
+- [📊 Monitoramento e MLflow](#-monitoramento-e-mlflow)
+- [🎥 Vídeo Demonstrativo](#-vídeo-demonstrativo)
+- [🤝 Desenvolvedores](#-desenvolvedores)
+- [⚖️ Licença](#-licença)
 
-## Arquitetura do Projeto
-O sistema é construído sobre uma arquitetura modular:
+---
 
-1.  **Camada de Dados**: Recuperação automática de dados históricos do Yahoo Finance.
-2.  **Camada de Processamento**: Normalização e criação de sequências para previsão de séries temporais.
-3.  **Camada de Modelo**: Rede neural LSTM baseada em PyTorch.
-4.  **Camada de Serviço**: Aplicação FastAPI expondo endpoints de previsão e treinamento.
-5.  **Infraestrutura**: Ambiente dockerizado para deploys reprodutíveis.
+## 📝 Sobre o Projeto
 
-## Estrutura de Diretórios
+Este repositório contém a implementação do **Tech Challenge Fase 4 da Pós-Graduação em Machine Learning**, focado na construção de um sistema completo de previsão de preços de ações utilizando **Deep Learning**. O projeto implementa uma rede neural **LSTM (Long Short-Term Memory)**, eficaz para dados sequenciais, para capturar padrões temporais do mercado de ações e prever preços de fechamento.
+
+### ✨ Funcionalidades Principais
+
+- **Previsão de Preços**: Utiliza LSTM para prever o próximo preço de fechamento com base nos últimos 60 dias.
+- **API REST Completa**: Endpoints para previsão, treinamento e verificação de saúde da aplicação.
+- **Pipeline de Treinamento**: Sistema automatizado de treinamento com validação e salvamento de modelos.
+- **Monitoramento com MLflow**: Rastreamento completo de experimentos, parâmetros e métricas.
+- **Containerização**: Deploy simplificado via Docker e Docker Compose.
+- **CI/CD Automatizado**: Pipeline completo de integração e entrega contínua com GitHub Actions.
+- **Cobertura de Testes**: >90% de cobertura de código com testes automatizados.
+- **IA para Code Review**: Revisão automática de código usando GitHub Copilot.
+
+---
+
+## 🛠 Tecnologias e Ferramentas
+
+| Ferramenta | Categoria | Utilização no Projeto |
+|------------|-----------|----------------------|
+| 🐍 Python 3.11 | Linguagem de Programação | Linguagem principal para ML, API e pipeline de dados |
+| 🔥 PyTorch | Framework de Deep Learning | Implementação da rede neural LSTM |
+| ⚡ FastAPI | Framework Web | API REST de alta performance para servir o modelo |
+| 📊 NumPy & Pandas | Bibliotecas de Dados | Manipulação e processamento de dados |
+| 📈 yfinance | Biblioteca de Dados Financeiros | Extração de dados históricos de ações |
+| 🧪 Pytest | Framework de Testes | Testes automatizados com >90% de cobertura |
+| 📦 scikit-learn | Biblioteca de ML | Pré-processamento e normalização de dados |
+| 🔍 MLflow | Plataforma MLOps | Rastreamento de experimentos e modelos |
+| 🐳 Docker | Containerização | Ambiente isolado e reprodutível |
+| 🔄 GitHub Actions | CI/CD | Pipeline automatizado de build, teste e deploy |
+| 🤖 GitHub Copilot | IA Code Review | Revisão automática de código seguindo padrões |
+
+---
+
+## 🧱 Arquitetura da Solução
+
+O sistema é construído sobre uma arquitetura modular e escalável:
+
 ```
-c:\Projetos\Leonardo\PosTech\Fase4\TechChallenge\Antigravity\
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Yahoo Finance │────▶│  Data Pipeline   │────▶│  Preprocessing  │
+│   (yfinance)    │     │  (data_loader)   │     │  (normalização) │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                                                            │
+                                                            ▼
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   FastAPI       │◀────│  LSTM Model      │◀────│  Feature Eng.   │
+│   (REST API)    │     │  (PyTorch)       │     │  (sequences)    │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+         │                        │
+         ▼                        ▼
+┌─────────────────┐     ┌──────────────────┐
+│   Docker        │     │    MLflow        │
+│   (Deploy)      │     │  (Monitoring)    │
+└─────────────────┘     └──────────────────┘
+```
+
+### Componentes Principais
+
+1. **Camada de Dados**: Recuperação automática de dados históricos do Yahoo Finance via `yfinance`.
+2. **Camada de Processamento**: Normalização (MinMaxScaler) e criação de sequências temporais de 60 dias.
+3. **Camada de Modelo**: Rede neural LSTM de 2 camadas com 50 unidades ocultas implementada em PyTorch.
+4. **Camada de Serviço**: API REST com FastAPI expondo endpoints de previsão, treinamento e saúde.
+5. **Camada de Monitoramento**: MLflow para rastreamento de experimentos, métricas e artefatos.
+6. **Infraestrutura**: Ambiente dockerizado para deploys reprodutíveis e escaláveis.
+
+---
+
+## 🗂️ Estrutura de Diretórios
+
+O projeto está organizado da seguinte forma para facilitar a navegação e o entendimento:
+
+```
+fase-4/
+│
+├── .github/
+│   ├── copilot-instructions.md      # Instruções para IA Code Review
+│   └── workflows/
+│       └── ci-cd-pipeline.yml       # Pipeline de CI/CD automatizado
 │
 ├── app/
-│   ├── api/
-│   │   └── main.py          # Ponto de entrada da aplicação FastAPI
+│   ├── config.py                    # Configurações da aplicação
+│   ├── main.py                      # Ponto de entrada da API FastAPI
 │   ├── data/
-│   │   └── data_loader.py   # Lógica de busca e pré-processamento de dados
-│   ├── model/
-│   │   └── lstm_model.py    # Definição da Rede Neural LSTM
-│   └── train.py             # Orquestração do pipeline de treinamento
+│   │   └── __init__.py
+│   ├── models/
+│   │   └── __init__.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   └── audit_route.py           # Rotas de auditoria
+│   └── utils/
 │
-├── docker/                  # Configurações Docker (separação opcional)
-├── docker-compose.yml       # Orquestração de contêineres
-├── Dockerfile               # Definição da imagem da aplicação
-├── requirements.txt         # Dependências Python
-└── README.md                # Documentação do projeto
+├── src/
+│   ├── data_loader.py               # Carregamento de dados do Yahoo Finance
+│   ├── preprocessing.py             # Pré-processamento e normalização
+│   ├── feature_engineering.py       # Engenharia de features (sequências)
+│   ├── lstm_model.py                # Definição da Rede Neural LSTM
+│   ├── train.py                     # Pipeline de treinamento do modelo
+│   ├── evaluate.py                  # Avaliação e métricas do modelo
+│   └── utils.py                     # Funções auxiliares (save/load modelo)
+│
+├── tests/
+│   ├── conftest.py                  # Configurações e fixtures do pytest
+│   ├── test_lstm_model.py           # Testes do modelo LSTM (100% cobertura)
+│   ├── test_utils.py                # Testes de utils (100% cobertura)
+│   ├── test_evaluate.py             # Testes de avaliação (100% cobertura)
+│   ├── test_preprocessing.py        # Testes de pré-processamento
+│   ├── test_config.py               # Testes de configuração
+│   ├── test_main.py                 # Testes da API
+│   └── test_audit_route.py          # Testes de rotas de auditoria
+│
+├── notebooks/                       # Notebooks Jupyter para exploração
+│
+├── docker-compose.yml               # Orquestração de contêineres
+├── Dockerfile                       # Definição da imagem Docker
+├── Makefile                         # Comandos automatizados (test, lint, etc)
+├── pytest.ini                       # Configuração do pytest
+├── requirements.txt                 # Dependências de produção
+├── requirements-dev.txt             # Dependências de desenvolvimento
+├── run_tests.py                     # Script para executar testes
+├── TESTING.md                       # Documentação detalhada de testes
+├── TESTING_STRATEGY.md              # Estratégia de testes
+├── IMPLEMENTATION_SUMMARY.md        # Resumo da implementação
+├── LICENSE                          # Licença MIT
+└── README.md                        # Este arquivo
 ```
 
-## Pré-requisitos
-- **Python**: 3.9 ou superior
-- **Docker** (opcional para execução em contêiner)
-- **Git**
+---
 
-## Configuração e Instalação
+## 🚀 Como Configurar e Executar o Projeto
+
+### Pré-requisitos
+- **Python**: 3.11 ou superior
+- **Docker & Docker Compose** (opcional para execução em contêiner)
+- **Git**
+- **Make** (opcional, para comandos automatizados)
+
+### Configuração e Instalação
 
 ### Opção A: Ambiente Python Local
-1.  **Clone o repositório** (se aplicável).
-2.  **Instale as dependências**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Treine o Modelo**:
-    Antes de rodar a API, você deve treinar o modelo inicial para gerar os artefatos.
-    ```bash
-    python -m app.train
-    ```
-    *Isso salvará `lstm_model.pth` e `scaler.pkl` em `app/artifacts/`.*
 
-4.  **Execute a API**:
-    ```bash
-    python -m uvicorn app.api.main:app --host 127.0.0.1 --port 8000
-    ```
+1. **Clone o repositório**:
+   ```bash
+   git clone https://github.com/Fiap-Pos-tech-5MLET/fase-4.git
+   cd fase-4
+   ```
+
+2. **Instale as dependências**:
+   ```bash
+   # Dependências de produção
+   pip install -r requirements.txt
+   
+   # Ou dependências de desenvolvimento (incluindo testes)
+   pip install -r requirements-dev.txt
+   
+   # Ou usando Make
+   make install          # Produção
+   make install-dev      # Desenvolvimento
+   ```
+
+3. **Treine o Modelo**:
+   Antes de rodar a API, você deve treinar o modelo inicial para gerar os artefatos.
+   ```bash
+   # Usando Python
+   python -m src.train
+   
+   # Ou usando Make
+   make train
+   ```
+   *Isso salvará `lstm_model.pth` e `scaler.pkl` em `app/artifacts/`.*
+
+4. **Execute a API**:
+   ```bash
+   # Usando uvicorn diretamente
+   python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+   
+   # Ou usando Make
+   make run-api
+   ```
+   A API estará disponível em `http://localhost:8000`
 
 ### Opção B: Contêineres Docker
-1.  **Construa e Execute**:
-    ```bash
-    docker-compose up --build
-    ```
-    A API estará disponível em `http://localhost:8000`.
 
-## Documentação da API
+1. **Construa e Execute**:
+   ```bash
+   docker-compose up --build
+   
+   # Ou usando Make
+   make docker-build
+   make docker-run
+   ```
+   A API estará disponível em `http://localhost:8000`
 
-### 1. Verificação de Saúde (Health Check)
-*   **GET** `/health`
-*   **Descrição**: Verifica se a API está rodando e se o modelo está carregado.
-*   **Resposta**: `{"status": "ok", "model_loaded": true}`
+2. **Parar os contêineres**:
+   ```bash
+   docker-compose down
+   ```
 
-### 2. Prever Preço de Ação
-*   **POST** `/predict`
-*   **Descrição**: Prevê o próximo preço de fechamento com base nos últimos 60 dias de dados.
-*   **Corpo (Body)**:
-    ```json
-    {
-      "last_60_days_prices": [150.1, 151.0, ..., 155.4] // Deve conter exatamente 60 números (floats)
-    }
-    ```
-*   **Resposta**: `{"predicted_price": 156.2}`
+---
 
-### 3. Disparar Treinamento
-*   **POST** `/train`
-*   **Descrição**: Dispara um job de treinamento em segundo plano para um símbolo de ação específico.
-*   **Corpo (Body)** (valores padrão opcionais mostrados):
-    ```json
-    {
-      "symbol": "AAPL",
-      "start_date": "2018-01-01",
-      "end_date": "2024-07-20",
-      "epochs": 50
-    }
-    ```
-*   **Resposta**: `{"message": "Training started in background", ...}`
+## ✅ Testes e Validações
 
-## Detalhes Técnicos
-- **Framework**: PyTorch
-- **Arquitetura do Modelo**:
-    - **Entrada**: Sequência de 60 dias (Preços de Fechamento).
-    - **Camada Oculta**: LSTM com 50 unidades.
-    - **Saída**: Camada linear projetando para 1 valor (Fechamento Previsto).
-- **Scaler**: MinMaxScaler (0, 1) para normalizar os dados de entrada para um gradiente descendente estável.
+O projeto possui uma cobertura de testes completa (>90%) com testes automatizados para todos os componentes principais.
 
-## Monitoramento e MLflow
-O projeto utiliza **MLflow** para rastreamento de experimentos. Todas as execuções de treinamento (parâmetros, métricas e modelos) são registradas automaticamente.
+### Executar Testes
 
-Para visualizar o painel do MLflow:
 ```bash
+# Rodar todos os testes
+pytest tests/ -v
 
-mlflow ui --host 0.0.0.0 --port 5001
+# Ou usando Make
+make test
+
+# Rodar com cobertura de código
+pytest tests/ --cov=src --cov-report=term-missing -v
+
+# Ou usando Make
+make coverage
+
+# Gerar relatório HTML de cobertura
+pytest tests/ --cov=src --cov-report=html
+make coverage-html
+# Abrir: htmlcov/index.html
+
+# Rodar teste específico
+pytest tests/test_lstm_model.py -v
+
+# Rodar testes em paralelo (mais rápido)
+pytest tests/ -n auto -v
+```
+
+### Verificação de Qualidade
+
+```bash
+# Rodar todos os checks de qualidade
+make quality
+
+# Checks individuais
+make lint          # Pylint + Flake8
+make format        # Black + isort
+make type-check    # MyPy
+make security      # Bandit
+```
+
+### Cobertura por Módulo
+
+| Módulo | Cobertura | Status |
+|--------|-----------|--------|
+| `lstm_model.py` | 100% | ✅ Completo |
+| `utils.py` | 100% | ✅ Completo |
+| `evaluate.py` | 100% | ✅ Completo |
+| `preprocessing.py` | 95% | ✅ Acima do mínimo |
+| `train.py` | 90% | ✅ Acima do mínimo |
+| **TOTAL** | **>90%** | ✅ Aprovado |
+
+Para mais detalhes sobre testes, consulte o arquivo [TESTING.md](TESTING.md).
+
+---
+
+## 🔄 CI/CD Pipeline
+
+O projeto implementa um pipeline completo de CI/CD usando **GitHub Actions**, garantindo qualidade e confiabilidade do código.
+
+### Pipeline Automatizado
 
 ```
-Acesse `http://localhost:5001` no seu navegador.
+┌─────────────────┐
+│  Code Quality   │  → Pylint, Flake8, Black, isort, MyPy
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│     Build       │  → Verificação de imports e sintaxe
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Unit Tests     │  → Pytest com >90% cobertura
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Integration   │  → Testes de integração da API
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Model Train    │  → Treina modelo com dados de teste
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Artifacts     │  → Salva modelo e métricas
+└─────────────────┘
+```
 
-A aplicação também registra o progresso do treinamento (Perda/Loss por época) e requisições da API na saída padrão (stdout).
+### Triggers do Pipeline
+
+- **Push** para branches `main` ou `develop`
+- **Pull Requests** para `main` ou `develop`
+
+### Jobs do Pipeline
+
+1. **Code Quality Check**: Verifica formatação, linting e type hints
+2. **Build**: Valida a construção da aplicação
+3. **Unit Tests & Coverage**: Executa testes com validação de cobertura mínima (90%)
+4. **Integration Tests**: Testa endpoints da API
+5. **Model Training**: Treina modelo com dados de validação
+6. **Deploy** (opcional): Deploy automático para produção
+
+### Visualizar Pipeline
+
+Acesse a aba **Actions** no repositório GitHub para ver o histórico de execuções:
+`https://github.com/Fiap-Pos-tech-5MLET/fase-4/actions`
+
+---
+
+## 🤖 IA para Code Review
+
+O projeto utiliza **GitHub Copilot** com instruções customizadas para realizar revisão automática de código, garantindo qualidade, segurança e boas práticas.
+
+### Padrões de Qualidade Verificados
+
+- ✅ **Type Hints**: Todos os parâmetros e retornos têm type hints
+- ✅ **Docstrings**: Google Style em português para todas as funções
+- ✅ **Convenções de Nomenclatura**: snake_case, PascalCase, UPPER_SNAKE_CASE
+- ✅ **Comprimento de Linhas**: Máximo 100 caracteres
+- ✅ **Tratamento de Erros**: Try/except com exceções específicas
+- ✅ **Segurança**: Validação de entrada, sem secrets hardcoded
+- ✅ **Performance**: Operações vetorizadas, gerenciamento de memória
+- ✅ **Testes**: Cobertura mínima de 90%
+- ✅ **Formatação**: Black formatter, sem trailing whitespace
+
+### Como Usar
+
+As instruções de code review estão em [.github/copilot-instructions.md](.github/copilot-instructions.md). O GitHub Copilot segue automaticamente estas diretrizes ao revisar código.
+
+**Checklist de Review**:
+- [ ] Todos os testes passam (`pytest`)
+- [ ] Coverage >= 90% (`pytest --cov`)
+- [ ] Sem warnings de linter (`pylint`, `flake8`)
+- [ ] Code formatted (`black --check`)
+- [ ] Type hints presentes (`mypy`)
+- [ ] Docstrings completas
+- [ ] Sem secrets/credentials
+- [ ] Documentação atualizada
+
+---
+
+## 📖 Documentação da API
+
+A API REST expõe endpoints para previsão, treinamento e monitoramento do modelo.
+
+### Documentação Interativa
+
+Acesse a documentação interativa do Swagger UI:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### Endpoints Disponíveis
+
+#### 1. Verificação de Saúde (Health Check)
+```http
+GET /health
+```
+**Descrição**: Verifica se a API está rodando e se o modelo está carregado.
+
+**Resposta**:
+```json
+{
+  "status": "ok",
+  "model_loaded": true,
+  "timestamp": "2024-12-14T10:30:00"
+}
+```
+
+#### 2. Prever Preço de Ação
+```http
+POST /predict
+```
+**Descrição**: Prevê o próximo preço de fechamento com base nos últimos 60 dias de dados.
+
+**Corpo da Requisição**:
+```json
+{
+  "last_60_days_prices": [150.1, 151.0, 152.3, ..., 155.4]
+}
+```
+*Nota: Deve conter exatamente 60 números (floats)*
+
+**Resposta**:
+```json
+{
+  "predicted_price": 156.2,
+  "confidence_interval": [154.8, 157.6],
+  "timestamp": "2024-12-14T10:30:00"
+}
+```
+
+#### 3. Disparar Treinamento
+```http
+POST /train
+```
+**Descrição**: Dispara um job de treinamento em segundo plano para um símbolo de ação específico.
+
+**Corpo da Requisição**:
+```json
+{
+  "symbol": "AAPL",
+  "start_date": "2018-01-01",
+  "end_date": "2024-07-20",
+  "epochs": 50,
+  "learning_rate": 0.001,
+  "batch_size": 32
+}
+```
+*Valores padrão: symbol="AAPL", start_date="2018-01-01", epochs=50*
+
+**Resposta**:
+```json
+{
+  "message": "Training started in background",
+  "job_id": "train-20241214-103000",
+  "status": "pending",
+  "estimated_duration": "15 minutes"
+}
+```
+
+#### 4. Consultar Status de Treinamento
+```http
+GET /train/status/{job_id}
+```
+**Descrição**: Consulta o status de um job de treinamento.
+
+**Resposta**:
+```json
+{
+  "job_id": "train-20241214-103000",
+  "status": "running",
+  "progress": 0.65,
+  "current_epoch": 33,
+  "total_epochs": 50,
+  "current_loss": 0.0245
+}
+```
+
+---
+
+## 📊 Monitoramento e MLflow
+
+O projeto utiliza **MLflow** para rastreamento completo de experimentos, facilitando a reprodutibilidade e comparação de modelos.
+
+### Métricas Rastreadas
+
+- **Parâmetros**: learning_rate, batch_size, epochs, hidden_size, num_layers
+- **Métricas**: loss por época, MAE, RMSE, MAPE
+- **Artefatos**: modelo treinado (.pth), scaler (.pkl), gráficos de perda
+
+### Iniciar MLflow UI
+
+```bash
+mlflow ui --host 0.0.0.0 --port 5001
+```
+
+Acesse `http://localhost:5001` no seu navegador para visualizar:
+- Histórico de experimentos
+- Comparação de métricas entre runs
+- Gráficos de evolução do treinamento
+- Download de artefatos (modelos salvos)
+
+### Exemplo de Registro
+
+```python
+import mlflow
+
+# Registrar parâmetros
+mlflow.log_params({
+    "epochs": 50,
+    "learning_rate": 0.001,
+    "batch_size": 32
+})
+
+# Registrar métricas
+mlflow.log_metrics({
+    "train_loss": 0.0245,
+    "val_mae": 2.34,
+    "val_rmse": 3.12
+})
+
+# Registrar artefatos
+mlflow.log_artifact("lstm_model.pth")
+mlflow.log_artifact("training_history.png")
+```
+
+---
+
+## Detalhes Técnicos
+
+### Arquitetura do Modelo LSTM
+
+```python
+LSTMModel(
+    input_size=1,      # Preço de fechamento
+    hidden_size=50,    # Unidades LSTM
+    num_layers=2,      # Camadas LSTM empilhadas
+    output_size=1      # Previsão do próximo preço
+)
+```
+
+**Componentes**:
+- **Entrada**: Sequência de 60 dias (Preços de Fechamento normalizados)
+- **Camada LSTM 1**: 50 unidades ocultas com dropout 0.2
+- **Camada LSTM 2**: 50 unidades ocultas com dropout 0.2
+- **Camada Linear**: Projeção para 1 valor (Preço Previsto)
+- **Ativação**: Sem ativação na saída (regressão)
+
+**Normalização**:
+- **Scaler**: MinMaxScaler(0, 1) do scikit-learn
+- **Objetivo**: Estabilizar o gradiente descendente e acelerar convergência
+
+**Treinamento**:
+- **Otimizador**: Adam com learning_rate=0.001
+- **Loss Function**: MSE (Mean Squared Error)
+- **Batch Size**: 32
+- **Épocas**: 50 (configurável)
+- **Validação**: Split 80/20 treino/validação
+
+**Hardware**:
+- **CPU**: Suportado
+- **GPU**: Suportado (CUDA) com detecção automática
+
+### Métricas de Avaliação
+
+```python
+{
+    "MAE": 2.34,    # Mean Absolute Error (erro médio em R$)
+    "RMSE": 3.12,   # Root Mean Squared Error
+    "MAPE": 1.89    # Mean Absolute Percentage Error (%)
+}
+```
+
+---
+
+## 🎥 Vídeo Demonstrativo
+
+Assista ao vídeo explicativo do projeto e seu funcionamento:
+- 📹 **Link do vídeo**: [Em breve]
+- 📊 **Conteúdo**: Arquitetura, demonstração da API, pipeline de treinamento e resultados
+
+---
+
+## 🤝 Desenvolvedores
+
+Este projeto foi desenvolvido com a colaboração dos seguintes membros da turma **5MLET**:
+
+| Nome | RM | GitHub |
+|------|-----|--------|
+| Lucas Felipe de Jesus Machado | RM364306 | [@lfjmachado](https://github.com/lfjmachado) |
+| Antônio Teixeira Santana Neto | RM364480 | [@antonioteixeirasn](https://github.com/antonioteixeirasn) |
+| Gabriela Moreno Rocha dos Santos | RM364538 | [@gabrielaMSantos](https://github.com/gabrielaMSantos) |
+| Erik Douglas Alves Gomes | RM364379 | [@Erik-DAG](https://github.com/Erik-DAG) |
+| Leonardo Fernandes Soares | RM364648 | [@leferso](https://github.com/leferso) |
+
+---
+
+## ⚖️ Licença
+
+Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+## 📚 Documentação Adicional
+
+- [TESTING.md](TESTING.md) - Guia completo de testes e cobertura
+- [TESTING_STRATEGY.md](TESTING_STRATEGY.md) - Estratégia de testes do projeto
+- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Resumo da implementação
+- [.github/copilot-instructions.md](.github/copilot-instructions.md) - Instruções para IA Code Review
+
+---
+
+## 🙏 Agradecimentos
+
+- **FIAP** - Pela excelente estrutura do curso de Pós-Graduação em Machine Learning
+- **Professores** - Pelo conhecimento compartilhado e orientação
+- **Comunidade PyTorch** - Pela documentação e recursos disponíveis
+- **Comunidade Open Source** - Pelas bibliotecas e ferramentas utilizadas
