@@ -1,13 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, status, Query
 from typing import Optional, List, Dict
-from app.auth.schemas.dependencies import get_current_user
 from app.utils.audit_log import get_audit_log_by_id, get_audit_logs
 from datetime import datetime
 
 router = APIRouter(
     prefix="/api/audit",
-    tags=["Auditoria"],
-    dependencies=[Depends(get_current_user)]
+    tags=["Auditoria"]
     )
 
 @router.get("/audit", status_code=status.HTTP_200_OK, response_model=List[Dict])
