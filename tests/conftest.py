@@ -10,8 +10,9 @@ import numpy as np
 from pathlib import Path
 import sys
 
-# Add src and app directories to path for imports
+# Add project root and directories to path for imports
 project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "src"))
 sys.path.insert(0, str(project_root / "app"))
 
