@@ -215,7 +215,7 @@ class TestEndpointTags:
         """Testa se endpoint raiz tem tag."""
         for route in app.routes:
             if route.path == "/":
-                assert "tags" in route.openapi_extra or route.methods
+                assert (route.openapi_extra and "tags" in route.openapi_extra) or route.methods
 
     def test_endpoint_tags_are_strings(self):
         """Testa se tags são strings."""

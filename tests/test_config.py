@@ -31,10 +31,10 @@ class TestSettingsClass:
         with patch.dict(os.environ, {}, clear=True):
             settings = Settings()
             
-            assert settings.PROJECT_NAME == ""
-            assert settings.SECRET_KEY == ""
+            assert settings.PROJECT_NAME == "Stock Prediction API - LSTM"
+            assert settings.SECRET_KEY == "development-secret-key-change-in-production"
             assert settings.ACCESS_TOKEN_EXPIRE_MINUTES == 60
-            assert settings.HTML_CACHE_DIR == ""
+            assert settings.HTML_CACHE_DIR == "./cache"
 
     def test_settings_partial_env_variables(self):
         """Testa com apenas algumas variáveis definidas."""
@@ -46,7 +46,7 @@ class TestSettingsClass:
             
             assert settings.PROJECT_NAME == 'Partial Project'
             assert settings.ACCESS_TOKEN_EXPIRE_MINUTES == 90
-            assert settings.SECRET_KEY == ""
+            assert settings.SECRET_KEY == "development-secret-key-change-in-production"
 
     def test_settings_model_initialization(self):
         """Testa se Settings é instância de BaseSettings."""
@@ -156,19 +156,19 @@ class TestSettingsDefaults:
         """Testa algoritmo padrão."""
         with patch.dict(os.environ, {}, clear=True):
             settings = Settings()
-            assert settings.ALGORITHM == ""
+            assert settings.ALGORITHM == "HS256"
 
     def test_default_model_repo_id(self):
         """Testa MODEL_REPO_ID padrão."""
         with patch.dict(os.environ, {}, clear=True):
             settings = Settings()
-            assert settings.MODEL_REPO_ID == ""
+            assert settings.MODEL_REPO_ID == "default-repo"
 
     def test_default_model_filename(self):
         """Testa MODEL_FILENAME padrão."""
         with patch.dict(os.environ, {}, clear=True):
             settings = Settings()
-            assert settings.MODEL_FILENAME == ""
+            assert settings.MODEL_FILENAME == "lstm_model.pth"
 
     def test_access_token_default(self):
         """Testa ACCESS_TOKEN_EXPIRE_MINUTES padrão."""

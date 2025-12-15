@@ -393,9 +393,15 @@ class TestEvaluateAndCalculateIntegration:
         device = torch.device('cpu')
         
         predictions, actuals = evaluate_model(model, test_loader, scaler, device)
+        # Garantir que são numpy arrays
+        if isinstance(predictions, torch.Tensor):
+            predictions = predictions.numpy()
+        if isinstance(actuals, torch.Tensor):
+            actuals = actuals.numpy()
+            
         metrics = calculate_metrics(predictions, actuals)
         
         # RMSE deve ser >= MAE
         assert metrics['rmse'] >= metrics['mae']
         # Valores devem ser positivos finitos
-        assert all(np.isfinite(metrics.values()))
+        assert all(np.isfinite([v for v in metrics.values()]))
