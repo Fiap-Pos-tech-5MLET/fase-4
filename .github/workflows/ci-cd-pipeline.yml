@@ -100,6 +100,8 @@ jobs:
         pip install pytest pytest-cov pytest-xdist
     
     - name: Run unit tests with coverage
+      env:
+        PYTHONPATH: ${{ github.workspace }}
       run: |
         pytest tests/ \
           --cov=src \
