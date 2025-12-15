@@ -65,6 +65,31 @@ class DataProcessor:
 
         return X_train_tensor, y_train_tensor, X_test_tensor, y_test_tensor
 
+def load_data(
+    symbol: str = 'AAPL',
+    start_date: str = '2018-01-01',
+    end_date: str = '2024-07-20'
+) -> pd.DataFrame:
+    """
+    Carrega dados históricos de ações do Yahoo Finance.
+    
+    Args:
+        symbol (str): Símbolo da ação (ex: AAPL, GOOGL, MSFT)
+        start_date (str): Data inicial no formato YYYY-MM-DD
+        end_date (str): Data final no formato YYYY-MM-DD
+    
+    Returns:
+        pd.DataFrame: DataFrame com dados históricos (coluna 'Close')
+    
+    Raises:
+        ValueError: Se não houver dados para o símbolo/período especificado
+    """
+    data = yf.download(symbol, start=start_date, end=end_date)
+    if data.empty:
+        raise ValueError(f"No data found for symbol {symbol} in date range {start_date} to {end_date}")
+    return data[['Close']]
+
+
 if __name__ == "__main__":
     # Simple test
     processor = DataProcessor()
