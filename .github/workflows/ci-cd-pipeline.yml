@@ -130,13 +130,16 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: coverage.html
+        path: |
+          coverage.xml
+          htmlcov/
+        if-no-files-found: warn
     
     - name: Generate coverage report
       if: always()
       run: |
         echo "✓ Coverage report generated successfully"
-        echo "Check the coverage.html artifact for detailed report"
+        if [ -d "htmlcov" ]; then echo "Check the htmlcov directory for detailed HTML report"; fi
 
   # Job 4: Testes de Integração
   integration-tests:
