@@ -11,14 +11,14 @@ class Settings(BaseSettings):
     """
     Configurações do projeto lidas a partir de variáveis de ambiente.
     """
-    PROJECT_NAME: str = os.getenv("PROJECT_NAME","")
-    SECRET_KEY: str = os.getenv("SECRET_KEY","")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
-    HTML_CACHE_DIR: str =  os.getenv("HTML_CACHE_DIR", "")
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "Stock Prediction API - LSTM")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "development-secret-key-change-in-production")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+    HTML_CACHE_DIR: str =  os.getenv("HTML_CACHE_DIR", "./cache")
     # Variáveis do modelo
-    MODEL_REPO_ID: str =  os.getenv("MODEL_REPO_ID", "")
-    MODEL_FILENAME: str =  os.getenv("MODEL_FILENAME", "")
-    ALGORITHM: str = os.getenv("ALGORITHM", "")
+    MODEL_REPO_ID: str =  os.getenv("MODEL_REPO_ID", "default-repo")
+    MODEL_FILENAME: str =  os.getenv("MODEL_FILENAME", "lstm_model.pth")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     MODEL: str = ""
 
 @lru_cache()
