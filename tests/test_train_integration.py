@@ -2,10 +2,15 @@
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from pathlib import Path
 
 from app.main import app
+
+# Add project root and directories to path for imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "src"))
+sys.path.insert(0, str(project_root / "app"))
 
 client = TestClient(app)
 
@@ -14,22 +19,20 @@ def test_train_route_triggers_background_task():
     Testa se a rota /train aceita a requisição e retorna 202.
     Mocka a função de treino real para evitar execução pesada.
     """
-    with patch("src.train.run_training_pipeline") as mock_pipeline:
-        mock_pipeline.return_value = {"mae": 0.1, "rmse": 0.1, "mape": 0.1}
-        
-        payload = {
-            "symbol": "TEST",
-            "start_date": "2023-01-01",
-            "end_date": "2023-02-01",
-            "epochs": 1
-        }
-        
-        response = client.post("/train", json=payload)
-        
-        assert response.status_code == 202
-        data = response.json()
-        assert "job_id" in data
-        assert data["status"] == "pending"
+
+    payload = {
+        "symbol": "TEST",
+        "start_date": "2023-01-01",
+        "end_date": "2023-02-01",
+        "epochs": 1
+    }
+    
+    response = client.post("/train", json=payload)
+    
+    assert response.status_code == 202
+    data = response.json()
+    assert "job_id" in data
+    assert data["status"] == "pending"
 
 def test_predict_route_requires_scaler_and_model():
     """
@@ -139,27 +142,19 @@ def test_training_status_flow():
     """
     Testa o fluxo completo: Disparar treino -> Pegar ID -> Consultar Status.
     """
-    with patch("src.train.run_training_pipeline") as mock_pipeline:
-        mock_pipeline.return_value = {"mae": 0.1}
-        
-        # 1. Trigger
-        payload = {"symbol": "TEST_STATUS", "epochs": 1}
-        res_train = client.post("/train", json=payload)
-        assert res_train.status_code == 202
-        job_id = res_train.json()["job_id"]
-        
-        # 2. Check Status (Initial/Running)
-        # Nota: Como é background task, pode já ter acabado ou estar rodando.
-        # No ambiente de teste do TestClient, as background tasks rodam síncronas após retorno?
-        # NÃO, TestClient roda background tasks DEPOIS do retorno da resposta.
-        # Então aqui deve estar pending ou já completed dependendo da implementação do StarletteTestClient.
-        # Vamos checar se existe.
-        res_status = client.get(f"/train/status/{job_id}")
-        assert res_status.status_code == 200
-        status_data = res_status.json()
-        assert status_data["job_id"] == job_id
-        # Deve ter completado pois é síncrono no mock simples ou TestClient espera
-        print(f"Job Status: {status_data['status']}")
+    # 1. Dispara o treino em background
+    payload = {"symbol": "TEST_STATUS", "epochs": 1}
+    res_train = client.post("/train", json=payload)
+    assert res_train.status_code == 202
+    job_id = res_train.json()["job_id"]
+    
+    # 2. Verifica o status do treino
+    # TestClient roda background tasks DEPOIS do retorno da resposta.
+    res_status = client.get(f"/train/status/{job_id}")
+    assert res_status.status_code == 200
+    status_data = res_status.json()
+    assert status_data["job_id"] == job_id
+    print(f"Job Status: {status_data['status']}")
 
 def test_training_status_not_found():
     """
