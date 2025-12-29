@@ -4,6 +4,7 @@
 import os
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Any
 
 # A classe Settings agora herda de BaseSettings.
 # Pydantic lerá automaticamente as variáveis de ambiente com o mesmo nome.
@@ -19,7 +20,10 @@ class Settings(BaseSettings):
     MODEL_REPO_ID: str =  os.getenv("MODEL_REPO_ID", "default-repo")
     MODEL_FILENAME: str =  os.getenv("MODEL_FILENAME", "lstm_model.pth")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    MODEL: str = ""
+    
+    # Objetos em memória (não são carregados de env, mas setados na inicialização)
+    MODEL: Any = None
+    SCALER: Any = None
 
 @lru_cache()
 def get_settings() -> Settings:
