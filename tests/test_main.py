@@ -307,9 +307,19 @@ class TestAppLifespan:
 
     @pytest.mark.asyncio
     async def test_lifespan_is_async_context_manager(self):
-        """Testa se lifespan é async context manager."""
-        from contextlib import asynccontextmanager
-        # lifespan deve ser configurado na app
+        """Testa se lifespan é um context manager assíncrono."""
+        # Mock os/sys para evitar erros de import e file not found
+        from unittest.mock import patch
+        from app.main import lifespan
+        with patch("app.main.os.path.abspath"), \
+             patch("app.main.hf_hub_download"), \
+             patch("app.main.joblib.load"), \
+             patch("app.main.torch.load"), \
+             patch("app.main.os.path.exists", return_value=False):
+             
+            async with lifespan(app):
+                pass
+            # Se não levantou erro, passounfigurado na app
         assert app.router.lifespan is not None
 
 

@@ -14,7 +14,7 @@ def test_train_route_triggers_background_task():
     Testa se a rota /train aceita a requisição e retorna 202.
     Mocka a função de treino real para evitar execução pesada.
     """
-    with patch("src.train.run_training_pipeline") as mock_pipeline:
+    with patch("app.routes.train_route.run_training_pipeline") as mock_pipeline:
         mock_pipeline.return_value = {"mae": 0.1, "rmse": 0.1, "mape": 0.1}
         
         payload = {
@@ -139,7 +139,10 @@ def test_training_status_flow():
     """
     Testa o fluxo completo: Disparar treino -> Pegar ID -> Consultar Status.
     """
-    with patch("src.train.run_training_pipeline") as mock_pipeline:
+    """
+    Testa o fluxo completo: Disparar treino -> Pegar ID -> Consultar Status.
+    """
+    with patch("app.routes.train_route.run_training_pipeline") as mock_pipeline:
         mock_pipeline.return_value = {"mae": 0.1}
         
         # 1. Trigger
