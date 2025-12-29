@@ -2,6 +2,11 @@
 # app/main.py
 # ===========================
 import joblib
+import os
+import joblib
+import torch
+import sys
+import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +15,8 @@ from huggingface_hub import hf_hub_download
 from contextlib import asynccontextmanager
 # Importa as rotas de pacientes e auditoria
 from app.routes.audit_route import router as audit_router
+from app.routes.train_route import router as train_router
+from app.routes.predict_route import router as predict_router
 # Carrega as configurações do projeto, incluindo as variáveis do modelo
 load_dotenv()
 __SETTINGS__ = get_settings()
@@ -26,16 +33,60 @@ async def lifespan(app: FastAPI):
     Carrega o modelo na inicialização e pode liberar recursos no desligamento.
     """
     try:
-        model_path = hf_hub_download(repo_id=__SETTINGS__.MODEL_REPO_ID, filename=__SETTINGS__.MODEL_FILENAME)
-        __SETTINGS__.MODEL = joblib.load(model_path)
-        print("Modelo carregado com sucesso na inicialização da API!")
+        # Import necessário para instanciar o modelo
+        sys.path.append(os.path.abspath("src"))
+        from src.lstm_model import LSTMModel
+
+        # Tenta baixar/carregar modelo do HuggingFace ou local
+        # Se não existir, a API deve subir mesmo assim para permitir o treino
+        try:
+            # Instancia o modelo vazio com a arquitetura padrão
+            # TODO: Idealmente os hiperparâmetros (hidden_layer_size) deveriam vir de config ou salvo junto
+            model = LSTMModel(input_size=1, hidden_layer_size=50, output_size=1)
+            
+            # Primeiro tenta local
+            local_model_path = "app/artifacts/lstm_model.pth"
+            
+            state_dict = None
+            if os.path.exists(local_model_path):
+                 print(f"Carregando modelo local de {local_model_path}...")
+                 state_dict = torch.load(local_model_path, map_location=torch.device('cpu'))
+            else:
+                # Fallback para HuggingFace se configurado
+                 print("Modelo local não encontrado. Tentando HuggingFace...")
+                 model_path = hf_hub_download(repo_id=__SETTINGS__.MODEL_REPO_ID, filename=__SETTINGS__.MODEL_FILENAME)
+
+                 loaded = joblib.load(model_path)
+                 if isinstance(loaded, dict):
+                     state_dict = loaded
+                 else:
+                     model = loaded
+            
+            if state_dict:
+                model.load_state_dict(state_dict)
+            
+            model.eval() # Coloca em modo de inferência
+            __SETTINGS__.MODEL = model
+            print("Modelo carregado com sucesso!")
+        except Exception as e:
+            print(f"Aviso: Não foi possível carregar o modelo ({e}). A API funcionará, mas /predict retornará erro até que o modelo seja treinado.")
+            __SETTINGS__.MODEL = None
+
+        # Tenta carregar o scaler localmente
+        scaler_path = "app/artifacts/scaler.pkl"
+        if os.path.exists(scaler_path):
+            __SETTINGS__.SCALER = joblib.load(scaler_path)
+            print("Scaler carregado com sucesso!")
+        else:
+            print(f"Aviso: Scaler não encontrado em {scaler_path}. Predições podem falhar.")
+            __SETTINGS__.SCALER = None
+
     except Exception as e:
-        print(f"Erro ao carregar o modelo: {e}")
+        print(f"Erro crítico no lifespan: {e}")
         __SETTINGS__.MODEL = None
+        __SETTINGS__.SCALER = None
     
-    # O 'yield' é crucial! Ele permite que a API inicie e comece a processar requisições.
     yield
-    # O código abaixo será executado quando a API for desligada.
     print("API desligada. Recursos liberados.")
 
 
@@ -82,6 +133,8 @@ app.add_middleware(
 )
 
 app.include_router(audit_router)
+app.include_router(train_router)
+app.include_router(predict_router)
 
 @app.get("/", tags=["Home"])
 async def root():
