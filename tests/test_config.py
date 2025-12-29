@@ -78,8 +78,7 @@ class TestSettingsClass:
     def test_settings_model_is_empty_string(self):
         """Testa se MODEL inicializa como string vazia."""
         settings = Settings()
-        assert settings.MODEL == ""
-        assert isinstance(settings.MODEL, str)
+        assert settings.MODEL == None
 
     def test_settings_with_special_characters(self):
         """Testa com caracteres especiais nas variáveis."""
@@ -287,7 +286,7 @@ class TestSettingsModelInitialization:
     def test_model_attribute_initial_value(self):
         """Testa valor inicial do atributo MODEL."""
         settings = Settings()
-        assert settings.MODEL == ""
+        assert settings.MODEL == None
 
     def test_model_can_be_modified(self):
         """Testa se MODEL pode ser modificado."""

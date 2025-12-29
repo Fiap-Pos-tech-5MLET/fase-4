@@ -7,10 +7,10 @@ import mlflow
 import mlflow.pytorch
 from typing import Dict, Tuple, List
 
-from data_loader import DataProcessor
-from lstm_model import LSTMModel
-from utils import save_model
-from evaluate import evaluate_model
+from src.data_loader import DataProcessor
+from src.lstm_model import LSTMModel
+from src.utils import save_model
+from src.evaluate import evaluate_model
 from torch.utils.data import DataLoader, TensorDataset
 
 
