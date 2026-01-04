@@ -15,6 +15,7 @@ WORKDIR /app
 
 # Copiar requirements e instalar dependências Python
 COPY requirements.txt .
+ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -36,6 +37,7 @@ COPY <<EOF /etc/supervisor/conf.d/supervisord.conf
 [supervisord]
 nodaemon=true
 logfile=/var/log/supervisor/supervisord.log
+user=root
 
 [program:nginx]
 command=/usr/sbin/nginx -g "daemon off;"
