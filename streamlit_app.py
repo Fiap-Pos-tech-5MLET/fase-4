@@ -40,14 +40,10 @@ import os
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 if ENVIRONMENT == "production":
-    # Em produção via Nginx:
-    # - Streamlit roda em localhost:8501 internamente
-    # - Nginx redireciona /app para :8501
-    # - FastAPI roda em localhost:8000 internamente
-    # - Nginx redireciona /api para :8000
-    # Então o Streamlit DEVE fazer requisições para ../api (fora do /app)
-    # Usando um protocolo relativo para não depender de http/https
-    API_BASE_URL = "../api"
+    # Em produção, Streamlit e FastAPI estão no MESMO container Docker
+    # Streamlit (localhost:8501) → FastAPI (localhost:8000)
+    # Mesmo que externamente seja /app e /api, internamente usamos localhost
+    API_BASE_URL = "http://localhost:8000"
 else:
     # Em desenvolvimento, usar localhost:8000
     API_BASE_URL = "http://localhost:8000"
@@ -471,9 +467,11 @@ def main() -> None:
     
     # Info sobre ambiente e API
     if ENVIRONMENT == "production":
-        info_api = f"**API Backend:** Via Nginx (`../api`)"
+        info_api = f"**API Backend:** `{API_BASE_URL}` (interno no container)"
+        info_externo = "\n**URL Externa:** Via Nginx em `/api`"
     else:
         info_api = f"**API Backend:** `{API_BASE_URL}`"
+        info_externo = ""
     
     st.markdown(
         f"""
@@ -482,7 +480,7 @@ def main() -> None:
         - Consultar status de treinamentos em andamento
         - Realizar previsões com modelos treinados
 
-        {info_api}
+        {info_api}{info_externo}
         **Ambiente:** {ENVIRONMENT.upper()}
         """
     )
