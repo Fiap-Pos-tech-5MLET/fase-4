@@ -204,6 +204,23 @@ fase-4/
    ```
    A API estará disponível em `http://localhost:8000`
 
+5. **Execute o Frontend Streamlit (Opcional)**:
+   ```bash
+   # Rodar o dashboard interativo
+   streamlit run streamlit_app.py
+   
+   # Ou usando Make
+   make run-streamlit
+   ```
+   O dashboard estará disponível em `http://localhost:8501`
+   
+   **Recursos do Dashboard:**
+   - 🎯 Interface gráfica para treinar modelos
+   - 📊 Consulta de status de treinamento em tempo real
+   - 🔮 Fazer previsões de duas formas:
+     - Automática: informando apenas o símbolo da ação
+     - Manual: fornecendo 60 preços históricos
+
 ### Opção B: Contêineres Docker
 
 1. **Construa e Execute**:
