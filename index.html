@@ -146,37 +146,37 @@
         <p class="subtitle">Tech Challenge Fase 4 - FIAP</p>
         
         <p class="description">
-            Aplicação completa de Machine Learning com rede neural LSTM para previsão 
-            de preços de ações. Explore a API ou use o dashboard interativo.
+            Aplicação de Machine Learning com rede neural LSTM para previsão de preços de ações.
+            Escolha a versão adequada abaixo.
         </p>
 
         <div class="features">
             <div class="feature">
                 <strong>API REST</strong><br>
-                FastAPI com documentação interativa
+                FastAPI com documentação interativa e endpoints de predição
             </div>
             <div class="feature">
-                <strong>Dashboard</strong><br>
-                Interface Streamlit para previsões
+                <strong>Dashboard Local</strong><br>
+                Rode o Streamlit em sua máquina e aponte para a API em produção
             </div>
         </div>
 
         <div class="buttons">
             <a href="/api/docs" class="btn btn-api">
-                Documentação da API
+                Documentação da API (Prod)
             </a>
-            <a href="/app" class="btn btn-app">
-                Dashboard Interativo
+            <a href="/dev/index-dev.html" class="btn btn-app">
+                Versão Desenvolvimento
             </a>
         </div>
 
         <div class="info">
             <h3>O que você pode fazer:</h3>
             <p>
-                <strong>API:</strong> Treinar modelos, fazer previsões e consultar status de treinamento via endpoints REST.
+                <strong>Prod (API-only):</strong> Use os endpoints REST e a documentação em <code>/api/docs</code>. O dashboard não é servido em produção.
             </p>
             <p>
-                <strong>Dashboard:</strong> Interface visual para treinar modelos, acompanhar progresso e fazer previsões de forma intuitiva.
+                <strong>Dev (API + Streamlit):</strong> Use a página de desenvolvimento para abrir o dashboard local apontando para a API de dev.
             </p>
         </div>
 
