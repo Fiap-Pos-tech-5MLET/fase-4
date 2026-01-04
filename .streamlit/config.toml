@@ -1,0 +1,14 @@
+[client]
+showErrorDetails = true
+toolbarMode = "viewer"
+
+[logger]
+level = "error"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+port = 8501
+headless = true
+baseUrlPath = "/app"

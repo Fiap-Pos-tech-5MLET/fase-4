@@ -1,6 +1,10 @@
+version: '3.8'
+
 services:
-  fastapi:
+  app:
     build: .
+    ports:
+      - "80:80"      # Nginx com landing page + reverse proxy
     environment:
       - PROJECT_NAME="TC4: Long Short Term Memory (LSTM)"
       - SECRET_KEY=5MLET
@@ -8,3 +12,9 @@ services:
       - ALGORITHM=HS256
       - MODEL_REPO_ID=lfjmachado/FIAP_TC_FASE3_DIABETE_FOREST
       - MODEL_FILENAME=melhor_modelo_diabetes.pkl
+      - ENVIRONMENT=production
+    volumes:
+      - ./app:/app/app
+      - ./src:/app/src
+      - ./streamlit_app.py:/app/streamlit_app.py
+    restart: unless-stopped

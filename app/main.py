@@ -17,6 +17,13 @@ from contextlib import asynccontextmanager
 from app.routes.audit_route import router as audit_router
 from app.routes.train_route import router as train_router
 from app.routes.predict_route import router as predict_router
+
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Carrega as configurações do projeto, incluindo as variáveis do modelo
 load_dotenv()
 __SETTINGS__ = get_settings()
@@ -32,6 +39,25 @@ async def lifespan(app: FastAPI):
     Gerenciador de contexto para a API.
     Carrega o modelo na inicialização e pode liberar recursos no desligamento.
     """
+    # Startup
+    logger.info("=" * 80)
+    logger.info("INICIALIZANDO API DE PREDIÇÃO DE PREÇOS - TECH CHALLENGE FASE 4")
+    logger.info("=" * 80)
+    
+    environment = os.getenv("ENVIRONMENT", "development")
+    logger.info(f"Ambiente: {environment.upper()}")
+    
+    if environment == "production":
+        logger.info("URLs em Produção:")
+        logger.info("  - API Docs: /api/docs")
+        logger.info("  - Streamlit: /app")
+        logger.info("  - Landing Page: /")
+    else:
+        logger.info("URLs em Desenvolvimento:")
+        logger.info("  - API: http://localhost:8000")
+        logger.info("  - API Docs: http://localhost:8000/docs")
+        logger.info("  - Streamlit: http://localhost:8501")
+    
     try:
         # Import necessário para instanciar o modelo
         sys.path.append(os.path.abspath("src"))

@@ -34,7 +34,18 @@ import streamlit as st
 # =============================
 # CONSTANTES
 # =============================
-API_BASE_URL = "http://localhost:8000"
+import os
+
+# Detectar ambiente: desenvolvimento (localhost) ou produção (relative path via Nginx)
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+if ENVIRONMENT == "production":
+    # Em produção, usar caminho relativo (Nginx redireciona /api/ para o backend)
+    API_BASE_URL = "/api"
+else:
+    # Em desenvolvimento, usar localhost:8000
+    API_BASE_URL = "http://localhost:8000"
+
 TRAIN_ENDPOINT = f"{API_BASE_URL}/train"
 STATUS_ENDPOINT = f"{API_BASE_URL}/train/status"
 PREDICT_ENDPOINT = f"{API_BASE_URL}/predict"

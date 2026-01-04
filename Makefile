@@ -35,6 +35,7 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make run-api          - Run API server"
+	@echo "  make run-streamlit    - Run Streamlit dashboard"
 	@echo "  make train            - Train the LSTM model"
 	@echo ""
 
@@ -142,6 +143,10 @@ clean-all: clean
 run-api:
 	@echo "Starting API server..."
 	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+run-streamlit:
+	@echo "Starting Streamlit dashboard..."
+	streamlit run streamlit_app.py
 
 train:
 	@echo "Training LSTM model..."

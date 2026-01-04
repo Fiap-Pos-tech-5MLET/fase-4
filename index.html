@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Challenge Fase 4 - Previsão de Preços de Ações</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .description {
+            color: #777;
+            margin-bottom: 50px;
+            line-height: 1.6;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            padding: 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            color: white;
+        }
+
+        .btn-api {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-api:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-app {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-app:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .info {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: left;
+            margin-top: 30px;
+        }
+
+        .info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            color: #666;
+        }
+
+        .feature strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Previsão de Preços de Ações</h1>
+        <p class="subtitle">Tech Challenge Fase 4 - FIAP</p>
+        
+        <p class="description">
+            Aplicação completa de Machine Learning com rede neural LSTM para previsão 
+            de preços de ações. Explore a API ou use o dashboard interativo.
+        </p>
+
+        <div class="features">
+            <div class="feature">
+                <strong>API REST</strong><br>
+                FastAPI com documentação interativa
+            </div>
+            <div class="feature">
+                <strong>Dashboard</strong><br>
+                Interface Streamlit para previsões
+            </div>
+        </div>
+
+        <div class="buttons">
+            <a href="/api/docs" class="btn btn-api">
+                Documentação da API
+            </a>
+            <a href="/app" class="btn btn-app">
+                Dashboard Interativo
+            </a>
+        </div>
+
+        <div class="info">
+            <h3>O que você pode fazer:</h3>
+            <p>
+                <strong>API:</strong> Treinar modelos, fazer previsões e consultar status de treinamento via endpoints REST.
+            </p>
+            <p>
+                <strong>Dashboard:</strong> Interface visual para treinar modelos, acompanhar progresso e fazer previsões de forma intuitiva.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Desenvolvido com FastAPI, Streamlit e PyTorch | LSTM para análise de séries temporais</p>
+        </div>
+    </div>
+</body>
+</html>
