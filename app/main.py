@@ -50,13 +50,12 @@ async def lifespan(app: FastAPI):
     if environment == "production":
         logger.info("URLs em Produção:")
         logger.info("  - API Docs: /api/docs")
-        logger.info("  - Streamlit: /app")
         logger.info("  - Landing Page: /")
     else:
         logger.info("URLs em Desenvolvimento:")
         logger.info("  - API: http://localhost:8000")
         logger.info("  - API Docs: http://localhost:8000/docs")
-        logger.info("  - Streamlit: http://localhost:8501")
+        logger.info("  - Streamlit (local opcional): http://localhost:8501")
     
     try:
         # Import necessário para instanciar o modelo

@@ -39,14 +39,8 @@ import os
 # Detectar ambiente: desenvolvimento (localhost) ou produção (via Nginx proxy)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-if ENVIRONMENT == "production":
-    # Em produção, Streamlit e FastAPI estão no MESMO container Docker
-    # Streamlit (localhost:8501) → FastAPI (localhost:8000)
-    # Mesmo que externamente seja /app e /api, internamente usamos localhost
-    API_BASE_URL = "http://localhost:8000"
-else:
-    # Em desenvolvimento, usar localhost:8000
-    API_BASE_URL = "http://localhost:8000"
+# Permite sobrescrever o destino da API via variável (ex.: apontar para API hospedada)
+API_BASE_URL = os.getenv("API_BASE_URL") or "http://localhost:8000"
 
 TRAIN_ENDPOINT = f"{API_BASE_URL}/train"
 STATUS_ENDPOINT = f"{API_BASE_URL}/train/status"
@@ -465,14 +459,9 @@ def main() -> None:
     # Interface principal
     st.title("Aplicação de Machine Learning")
     
-    # Info sobre ambiente e API
-    if ENVIRONMENT == "production":
-        info_api = f"**API Backend:** `{API_BASE_URL}` (interno no container)"
-        info_externo = "\n**URL Externa:** Via Nginx em `/api`"
-    else:
-        info_api = f"**API Backend:** `{API_BASE_URL}`"
-        info_externo = ""
-    
+    # Info sobre ambiente e API (Streamlit roda local; API pode estar remota)
+    info_api = f"**API Backend:** `{API_BASE_URL}`"
+
     st.markdown(
         f"""
         Este app permite:
@@ -480,7 +469,7 @@ def main() -> None:
         - Consultar status de treinamentos em andamento
         - Realizar previsões com modelos treinados
 
-        {info_api}{info_externo}
+        {info_api}
         **Ambiente:** {ENVIRONMENT.upper()}
         """
     )

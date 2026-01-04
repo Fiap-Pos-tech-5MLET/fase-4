@@ -16,5 +16,4 @@ services:
     volumes:
       - ./app:/app/app
       - ./src:/app/src
-      - ./streamlit_app.py:/app/streamlit_app.py
     restart: unless-stopped

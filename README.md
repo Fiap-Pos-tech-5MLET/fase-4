@@ -82,44 +82,37 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 └─────────────────┘     └──────────────────┘
 ```
 
-### Arquitetura em Produção (Render)
+### Arquitetura em Produção (Render) — Apenas API
 
 ```
-                    https://fase-1-hkv8.onrender.com
-                              │
-                              ▼
-                    ┌──────────────────┐
-                    │  NGINX (Port 80) │
-                    │  Reverse Proxy   │
-                    └──────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-        ▼                     ▼                     ▼
-  /            /api/*                      /app
-┌──────────┐  ┌──────────┐          ┌──────────────┐
-│index.html│  │ FastAPI  │          │  Streamlit   │
-│Landing   │  │ :8000    │          │  :8501       │
-│Page      │  │          │          │              │
-└──────────┘  │ /train   │          │ - Dashboard  │
-              │ /predict │          │ - Training   │
-              │ /status  │          │ - Prediction │
-              └──────────┘          └──────────────┘
-                    │
-                    ▼
-         ┌──────────────────┐
-         │  LSTM PyTorch    │
-         │  Model + Scaler  │
-         └──────────────────┘
+        https://fase-1-hkv8.onrender.com
+          │
+          ▼
+        ┌──────────────────┐
+        │  NGINX (Port 80) │
+        │  Reverse Proxy   │
+        └──────────────────┘
+          │
+         ┌────────────┴────────────┐
+         ▼                         ▼
+       / (opcional)                /api/*
+     ┌──────────┐                 ┌──────────┐
+     │index.html│                 │ FastAPI  │
+     │Landing   │                 │ :8000    │
+     └──────────┘                 └──────────┘
+                │
+                ▼
+           ┌──────────────────┐
+           │  LSTM PyTorch    │
+           │  Model + Scaler  │
+           └──────────────────┘
 ```
 
 **Fluxo de Produção:**
 1. Cliente acessa `https://fase-1-hkv8.onrender.com/`
-2. Nginx serve landing page com botões para `/api/docs` e `/app`
-3. Requisições para `/api/*` são redirecionadas para FastAPI (:8000)
-4. Requisições para `/app` são redirecionadas para Streamlit (:8501)
-5. Streamlit faz requisições para `../api` (resolve para FastAPI via Nginx)
-6. Supervisor gerencia os 3 processos (Nginx, FastAPI, Streamlit) em um único container
+2. Nginx serve landing (opcional) ou redireciona para `/api/docs`
+3. Requisições para `/api/*` vão para FastAPI (:8000)
+4. O dashboard Streamlit **não é servido em produção**; execute localmente apontando para a API
 
 ### Componentes Principais
 
@@ -314,7 +307,11 @@ docker-compose down
 
 **Serviços disponíveis:**
 - API: http://localhost:8000
-- Streamlit: http://localhost:8501
+
+Para usar o dashboard, rode o Streamlit localmente (fora do container):
+```
+streamlit run streamlit_app.py --server.port=8501 --server.address=127.0.0.1
+```
 
 ---
 
@@ -322,16 +319,15 @@ docker-compose down
 
 #### Arquitetura de Produção
 
-Em produção, todos os serviços rodam em um único container Docker com Nginx como reverse proxy:
+Em produção, apenas a **API FastAPI** é servida. O dashboard Streamlit roda localmente, apontando para a URL da API.
 
 ```
 Container Docker (Port 80)
-├─ Nginx (Port 80)          → Reverse Proxy
-├─ FastAPI (Port 8000)      → API Backend
-└─ Streamlit (Port 8501)    → Dashboard Frontend
+├─ Nginx (Port 80)          → Reverse Proxy (opcional para landing)
+└─ FastAPI (Port 8000)      → API Backend
 ```
 
-**Gerenciado por Supervisor** (inicia automaticamente os 3 processos)
+**Gerenciado por Supervisor** (inicia Nginx e FastAPI)
 
 #### Passo 1: Preparar Repositório
 
@@ -378,11 +374,9 @@ ALGORITHM=HS256
 |---------|-----------------|
 | **Landing Page** | `https://tc4-lstm-api.onrender.com/` |
 | **API Docs** | `https://tc4-lstm-api.onrender.com/api/docs` |
-| **Dashboard** | `https://tc4-lstm-api.onrender.com/app` |
 
 **URLs Internas (não acessíveis externamente):**
 - FastAPI: localhost:8000
-- Streamlit: localhost:8501
 
 #### Logs e Debugging
 
@@ -397,7 +391,6 @@ INICIALIZANDO API - TECH CHALLENGE FASE 4
 Ambiente: PRODUCTION
 URLs em Produção:
   - API Docs: /api/docs
-  - Streamlit: /app
   - Landing Page: /
 ========================================
 ```
@@ -409,7 +402,7 @@ URLs em Produção:
 | Ambiente | Landing Page | API Docs | Streamlit |
 |----------|-------------|----------|-----------|
 | **Desenvolvimento** | N/A | http://localhost:8000/api/docs | http://localhost:8501 |
-| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | https://fase-1-hkv8.onrender.com/app |
+| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | **Local apenas** (apontar `API_BASE_URL` para a URL da API)
 
 ---
 

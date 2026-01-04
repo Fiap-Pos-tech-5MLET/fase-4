@@ -53,14 +53,6 @@ autostart=true
 autorestart=true
 stderr_logfile=/var/log/supervisor/api.err.log
 stdout_logfile=/var/log/supervisor/api.out.log
-
-[program:streamlit]
-command=streamlit run streamlit_app.py --server.port=8501 --server.address=127.0.0.1
-directory=/app
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/supervisor/streamlit.err.log
-stdout_logfile=/var/log/supervisor/streamlit.out.log
 EOF
 
 # Expor porta 80 (Nginx)
