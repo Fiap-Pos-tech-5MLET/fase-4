@@ -7,10 +7,10 @@ import mlflow
 import mlflow.pytorch
 from typing import Dict, Tuple, List
 
-from data_loader import DataProcessor
-from lstm_model import LSTMModel
-from utils import save_model
-from evaluate import evaluate_model
+from src.data_loader import DataProcessor
+from src.lstm_model import LSTMModel
+from src.utils import save_model
+from src.evaluate import evaluate_model
 from torch.utils.data import DataLoader, TensorDataset
 
 
@@ -80,7 +80,9 @@ def run_training_pipeline(
     symbol: str = 'AAPL',
     start_date: str = '2018-01-01',
     end_date: str = '2024-07-20',
-    epochs: int = 50
+    epochs: int = 50,
+    batch_size: int = 64,
+    learning_rate: float = 0.001
 ) -> Dict[str, float]:
     """
     Executa o pipeline completo de treinamento do modelo LSTM.
@@ -98,6 +100,8 @@ def run_training_pipeline(
         start_date (str): Data de início (formato: YYYY-MM-DD). Padrão: '2018-01-01'
         end_date (str): Data de término (formato: YYYY-MM-DD). Padrão: '2024-07-20'
         epochs (int): Número de épocas de treinamento. Padrão: 50
+        batch_size (int): Tamanho do lote. Padrão: 64
+        learning_rate (float): Taxa de aprendizado. Padrão: 0.001
     
     Returns:
         Dict[str, float]: Dicionário com símbolo e métricas (MAE, RMSE, MAPE).
@@ -112,8 +116,8 @@ def run_training_pipeline(
             "start_date": start_date,
             "end_date": end_date,
             "epochs": epochs,
-            "batch_size": 64,
-            "learning_rate": 0.001,
+            "batch_size": batch_size,
+            "learning_rate": learning_rate,
             "hidden_units": 50
         })
 
@@ -125,7 +129,7 @@ def run_training_pipeline(
             return {"error": str(e)}
         
         # Criação de DataLoaders
-        batch_size = 64
+        # batch_size usará o argumento
         train_data = TensorDataset(X_train, y_train)
         test_data = TensorDataset(X_test, y_test)
         
@@ -134,7 +138,7 @@ def run_training_pipeline(
         
         # 2. Inicialização do Modelo
         model = LSTMModel(input_size=1, hidden_layer_size=50, output_size=1)
-        trainer = ModelTrainer(model, lr=0.001)
+        trainer = ModelTrainer(model, lr=learning_rate)
         
         # 3. Treinamento do Modelo
         print(f"Iniciando Treinamento para {symbol}...")

@@ -102,13 +102,16 @@ fase-4/
 ├── app/
 │   ├── config.py                    # Configurações da aplicação
 │   ├── main.py                      # Ponto de entrada da API FastAPI
+│   ├── schemas.py                   # Schemas Pydantic (Request/Response)
 │   ├── data/
 │   │   └── __init__.py
 │   ├── models/
 │   │   └── __init__.py
 │   ├── routes/
 │   │   ├── __init__.py
-│   │   └── audit_route.py           # Rotas de auditoria
+│   │   ├── audit_route.py           # Rotas de auditoria
+│   │   ├── predict_route.py         # Rota de previsão (Deep Learning)
+│   │   └── train_route.py           # Rota de treinamento e status
 │   └── utils/
 │
 ├── src/
@@ -128,7 +131,8 @@ fase-4/
 │   ├── test_preprocessing.py        # Testes de pré-processamento
 │   ├── test_config.py               # Testes de configuração
 │   ├── test_main.py                 # Testes da API
-│   └── test_audit_route.py          # Testes de rotas de auditoria
+│   ├── test_audit_route.py          # Testes de rotas de auditoria
+│   └── test_train_integration.py    # Testes de integração (Treino/Predição)
 │
 ├── notebooks/                       # Notebooks Jupyter para exploração
 │
@@ -399,21 +403,30 @@ GET /health
 ```http
 POST /predict
 ```
-**Descrição**: Prevê o próximo preço de fechamento com base nos últimos 60 dias de dados.
+**Descrição**: Prevê o próximo preço de fechamento. Flexível para aceitar dados manuais ou busca automática.
 
-**Corpo da Requisição**:
+**Corpo da Requisição (Opções)**:
+
+*Opção 1: Busca Automática (Recomendado)*
 ```json
 {
-  "last_60_days_prices": [150.1, 151.0, 152.3, ..., 155.4]
+  "symbol": "AAPL",
+  "start_date": "2023-01-01",  // Opcional
+  "end_date": "2023-04-01"     // Opcional
 }
 ```
-*Nota: Deve conter exatamente 60 números (floats)*
+
+*Opção 2: Dados Manuais*
+```json
+{
+  "last_60_days_prices": [150.1, 151.0, ..., 155.4] // Exatamente 60 valores
+}
+```
 
 **Resposta**:
 ```json
 {
   "predicted_price": 156.2,
-  "confidence_interval": [154.8, 157.6],
   "timestamp": "2024-12-14T10:30:00"
 }
 ```
@@ -422,7 +435,7 @@ POST /predict
 ```http
 POST /train
 ```
-**Descrição**: Dispara um job de treinamento em segundo plano para um símbolo de ação específico.
+**Descrição**: Dispara um job de treinamento em segundo plano.
 
 **Corpo da Requisição**:
 ```json
@@ -435,15 +448,13 @@ POST /train
   "batch_size": 32
 }
 ```
-*Valores padrão: symbol="AAPL", start_date="2018-01-01", epochs=50*
 
 **Resposta**:
 ```json
 {
-  "message": "Training started in background",
-  "job_id": "train-20241214-103000",
-  "status": "pending",
-  "estimated_duration": "15 minutes"
+  "message": "Treinamento iniciado em background",
+  "job_id": "train-2bd8953c...",
+  "status": "pending"
 }
 ```
 
@@ -451,19 +462,23 @@ POST /train
 ```http
 GET /train/status/{job_id}
 ```
-**Descrição**: Consulta o status de um job de treinamento.
+**Descrição**: Retorna o status atual do job de treinamento (pending, running, completed, failed).
 
 **Resposta**:
 ```json
 {
-  "job_id": "train-20241214-103000",
-  "status": "running",
-  "progress": 0.65,
-  "current_epoch": 33,
-  "total_epochs": 50,
-  "current_loss": 0.0245
+  "job_id": "train-2bd8...",
+  "status": "completed",
+  "result": { ... },
+  "error": null
 }
 ```
+
+#### 5. Consultar Auditoria
+```http
+GET /api/audit/audit
+```
+**Descrição**: Consulta logs de requisições.
 
 ---
 
