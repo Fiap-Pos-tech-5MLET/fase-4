@@ -2,7 +2,7 @@ services:
   fastapi:
     build: .
     environment:
-      - PROJECT_NAME=API de Predição de Diabetes
+      - PROJECT_NAME="TC4: Long Short Term Memory (LSTM)"
       - SECRET_KEY=5MLET
       - ACCESS_TOKEN_EXPIRE_MINUTES=60
       - ALGORITHM=HS256
