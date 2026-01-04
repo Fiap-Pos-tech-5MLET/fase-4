@@ -143,6 +143,7 @@ fase-4/
 ├── requirements.txt                 # Dependências de produção
 ├── requirements-dev.txt             # Dependências de desenvolvimento
 ├── run_tests.py                     # Script para executar testes
+├── streamlit_app.py                 # Script para executar front-end
 ├── TESTING.md                       # Documentação detalhada de testes
 ├── TESTING_STRATEGY.md              # Estratégia de testes
 ├── IMPLEMENTATION_SUMMARY.md        # Resumo da implementação
