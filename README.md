@@ -581,6 +581,7 @@ LSTMModel(
 
 Assista ao vídeo explicativo do projeto e seu funcionamento:
 - 📹 **Link do vídeo**: [Em breve]
+- 💎 **Link API Publica**: [API](https://fase-1-hkv8.onrender.com)
 - 📊 **Conteúdo**: Arquitetura, demonstração da API, pipeline de treinamento e resultados
 
 ---
