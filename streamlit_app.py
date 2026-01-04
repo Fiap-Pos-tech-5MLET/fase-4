@@ -36,12 +36,18 @@ import streamlit as st
 # =============================
 import os
 
-# Detectar ambiente: desenvolvimento (localhost) ou produção (relative path via Nginx)
+# Detectar ambiente: desenvolvimento (localhost) ou produção (via Nginx proxy)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 if ENVIRONMENT == "production":
-    # Em produção, usar caminho relativo (Nginx redireciona /api/ para o backend)
-    API_BASE_URL = "/api"
+    # Em produção via Nginx:
+    # - Streamlit roda em localhost:8501 internamente
+    # - Nginx redireciona /app para :8501
+    # - FastAPI roda em localhost:8000 internamente
+    # - Nginx redireciona /api para :8000
+    # Então o Streamlit DEVE fazer requisições para ../api (fora do /app)
+    # Usando um protocolo relativo para não depender de http/https
+    API_BASE_URL = "../api"
 else:
     # Em desenvolvimento, usar localhost:8000
     API_BASE_URL = "http://localhost:8000"
@@ -87,12 +93,14 @@ def consultar_status_treinamento(job_id: str) -> Optional[Dict[str, Any]]:
         Exibe mensagem de erro via Streamlit se a conexão falhar.
     """
     try:
-        response = requests.get(f"{STATUS_ENDPOINT}/{job_id}", timeout=10)
+        url = f"{STATUS_ENDPOINT}/{job_id}"
+        response = requests.get(url, timeout=10)
         if response.status_code == 200:
             return response.json()
+        st.warning(f"Status HTTP {response.status_code} ao acessar {url}")
         return None
     except requests.exceptions.RequestException as e:
-        st.error(f"Erro ao conectar com a API: {e}")
+        st.error(f"Erro ao conectar com a API: {e}\nURL: {STATUS_ENDPOINT}/{job_id}")
         return None
 
 
@@ -122,9 +130,10 @@ def iniciar_treinamento(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         response = requests.post(TRAIN_ENDPOINT, json=payload, timeout=30)
         if response.status_code == 200:
             return response.json()
+        st.warning(f"Status HTTP {response.status_code} ao conectar com {TRAIN_ENDPOINT}")
         return None
     except requests.exceptions.RequestException as e:
-        st.error(f"Erro ao conectar com a API: {e}")
+        st.error(f"Erro ao conectar com a API: {e}\nURL: {TRAIN_ENDPOINT}")
         return None
 
 
@@ -152,9 +161,10 @@ def fazer_previsao(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         response = requests.post(PREDICT_ENDPOINT, json=payload, timeout=30)
         if response.status_code == 200:
             return response.json()
+        st.warning(f"Status HTTP {response.status_code} ao conectar com {PREDICT_ENDPOINT}")
         return None
     except requests.exceptions.RequestException as e:
-        st.error(f"Erro ao conectar com a API: {e}")
+        st.error(f"Erro ao conectar com a API: {e}\nURL: {PREDICT_ENDPOINT}")
         return None
 
 
@@ -458,14 +468,22 @@ def main() -> None:
 
     # Interface principal
     st.title("Aplicação de Machine Learning")
+    
+    # Info sobre ambiente e API
+    if ENVIRONMENT == "production":
+        info_api = f"**API Backend:** Via Nginx (`../api`)"
+    else:
+        info_api = f"**API Backend:** `{API_BASE_URL}`"
+    
     st.markdown(
-        """
+        f"""
         Este app permite:
         - Treinar modelos LSTM para previsão de ações
         - Consultar status de treinamentos em andamento
         - Realizar previsões com modelos treinados
 
-        **API Backend:** `http://localhost:8000`
+        {info_api}
+        **Ambiente:** {ENVIRONMENT.upper()}
         """
     )
 

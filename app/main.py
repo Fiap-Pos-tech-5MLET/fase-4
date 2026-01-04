@@ -144,7 +144,8 @@ app = FastAPI(
         "- **MLflow**: Rastreamento de experimentos\n"
         "- **yfinance**: Coleta de dados de ações\n"
     ),
-    version="1.0.0", 
+    version="1.0.0",
+    root_path="/api" if os.getenv("ENVIRONMENT") == "production" else "",
     lifespan=lifespan
 )
 
