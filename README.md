@@ -85,7 +85,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 ### Arquitetura em Produção (Render)
 
 ```
-                    https://seu-app.onrender.com
+                    https://fase-1-hkv8.onrender.com
                               │
                               ▼
                     ┌──────────────────┐
@@ -114,7 +114,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 ```
 
 **Fluxo de Produção:**
-1. Cliente acessa `https://seu-app.onrender.com/`
+1. Cliente acessa `https://fase-1-hkv8.onrender.com/`
 2. Nginx serve landing page com botões para `/api/docs` e `/app`
 3. Requisições para `/api/*` são redirecionadas para FastAPI (:8000)
 4. Requisições para `/app` são redirecionadas para Streamlit (:8501)
@@ -273,7 +273,7 @@ make run-api
 ```
 
 **API disponível em:** http://localhost:8000
-**Documentação:** http://localhost:8000/docs
+**Documentação:** http://localhost:8000/api/docs
 
 #### 5. Execute o Dashboard Streamlit
 
@@ -408,8 +408,8 @@ URLs em Produção:
 
 | Ambiente | Landing Page | API Docs | Streamlit |
 |----------|-------------|----------|-----------|
-| **Desenvolvimento** | N/A | http://localhost:8000/docs | http://localhost:8501 |
-| **Produção** | https://seu-app.onrender.com | https://seu-app.onrender.com/api/docs | https://seu-app.onrender.com/app |
+| **Desenvolvimento** | N/A | http://localhost:8000/api/docs | http://localhost:8501 |
+| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | https://fase-1-hkv8.onrender.com/app |
 
 ---
 
@@ -569,7 +569,7 @@ A API REST expõe endpoints para previsão, treinamento e monitoramento do model
 ### Documentação Interativa
 
 Acesse a documentação interativa do Swagger UI:
-- **Swagger UI**: http://localhost:8000/docs
+- **Swagger UI**: http://localhost:8000/api/docs
 - **ReDoc**: http://localhost:8000/redoc
 
 ### Endpoints Disponíveis
