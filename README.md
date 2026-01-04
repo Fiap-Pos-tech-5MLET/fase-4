@@ -55,7 +55,9 @@ Este repositório contém a implementação do **Tech Challenge Fase 4 da Pós-G
 
 ## 🧱 Arquitetura da Solução
 
-O sistema é construído sobre uma arquitetura modular e escalável:
+O sistema é construído sobre uma arquitetura modular e escalável com suporte para deployment em produção via Docker e Nginx.
+
+### Arquitetura em Desenvolvimento
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -65,16 +67,59 @@ O sistema é construído sobre uma arquitetura modular e escalável:
                                                             │
                                                             ▼
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   FastAPI       │◀────│  LSTM Model      │◀────│  Feature Eng.   │
-│   (REST API)    │     │  (PyTorch)       │     │  (sequences)    │
+│   Streamlit     │◀────│  LSTM Model      │◀────│  Feature Eng.   │
+│   :8501         │     │  (PyTorch)       │     │  (sequences)    │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
          │                        │
-         ▼                        ▼
+         └────────▶ FastAPI ◀────┘
+                    :8000
+                      │
+         ┌────────────┴────────────┐
+         ▼                         ▼
 ┌─────────────────┐     ┌──────────────────┐
 │   Docker        │     │    MLflow        │
 │   (Deploy)      │     │  (Monitoring)    │
 └─────────────────┘     └──────────────────┘
 ```
+
+### Arquitetura em Produção (Render)
+
+```
+                    https://seu-app.onrender.com
+                              │
+                              ▼
+                    ┌──────────────────┐
+                    │  NGINX (Port 80) │
+                    │  Reverse Proxy   │
+                    └──────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+  /            /api/*                      /app
+┌──────────┐  ┌──────────┐          ┌──────────────┐
+│index.html│  │ FastAPI  │          │  Streamlit   │
+│Landing   │  │ :8000    │          │  :8501       │
+│Page      │  │          │          │              │
+└──────────┘  │ /train   │          │ - Dashboard  │
+              │ /predict │          │ - Training   │
+              │ /status  │          │ - Prediction │
+              └──────────┘          └──────────────┘
+                    │
+                    ▼
+         ┌──────────────────┐
+         │  LSTM PyTorch    │
+         │  Model + Scaler  │
+         └──────────────────┘
+```
+
+**Fluxo de Produção:**
+1. Cliente acessa `https://seu-app.onrender.com/`
+2. Nginx serve landing page com botões para `/api/docs` e `/app`
+3. Requisições para `/api/*` são redirecionadas para FastAPI (:8000)
+4. Requisições para `/app` são redirecionadas para Streamlit (:8501)
+5. Streamlit faz requisições para `../api` (resolve para FastAPI via Nginx)
+6. Supervisor gerencia os 3 processos (Nginx, FastAPI, Streamlit) em um único container
 
 ### Componentes Principais
 
@@ -82,8 +127,10 @@ O sistema é construído sobre uma arquitetura modular e escalável:
 2. **Camada de Processamento**: Normalização (MinMaxScaler) e criação de sequências temporais de 60 dias.
 3. **Camada de Modelo**: Rede neural LSTM de 2 camadas com 50 unidades ocultas implementada em PyTorch.
 4. **Camada de Serviço**: API REST com FastAPI expondo endpoints de previsão, treinamento e saúde.
-5. **Camada de Monitoramento**: MLflow para rastreamento de experimentos, métricas e artefatos.
-6. **Infraestrutura**: Ambiente dockerizado para deploys reprodutíveis e escaláveis.
+5. **Camada de Interface**: Dashboard Streamlit para interação visual com a API.
+6. **Camada de Proxy**: Nginx como reverse proxy unificando acesso (produção).
+7. **Camada de Monitoramento**: MLflow para rastreamento de experimentos, métricas e artefatos.
+8. **Infraestrutura**: Ambiente dockerizado para deploys reprodutíveis e escaláveis.
 
 ---
 
@@ -137,13 +184,17 @@ fase-4/
 ├── notebooks/                       # Notebooks Jupyter para exploração
 │
 ├── docker-compose.yml               # Orquestração de contêineres
-├── Dockerfile                       # Definição da imagem Docker
+├── Dockerfile                       # Definição da imagem Docker (multi-processo)
+├── nginx.conf                       # Configuração do Nginx reverse proxy
+├── index.html                       # Landing page de produção
+├── streamlit_app.py                 # Dashboard interativo (frontend)
+├── .streamlit/
+│   └── config.toml                  # Configuração do Streamlit
 ├── Makefile                         # Comandos automatizados (test, lint, etc)
 ├── pytest.ini                       # Configuração do pytest
 ├── requirements.txt                 # Dependências de produção
 ├── requirements-dev.txt             # Dependências de desenvolvimento
 ├── run_tests.py                     # Script para executar testes
-├── streamlit_app.py                 # Script para executar front-end
 ├── TESTING.md                       # Documentação detalhada de testes
 ├── TESTING_STRATEGY.md              # Estratégia de testes
 ├── IMPLEMENTATION_SUMMARY.md        # Resumo da implementação
@@ -161,83 +212,204 @@ fase-4/
 - **Git**
 - **Make** (opcional, para comandos automatizados)
 
-### Configuração e Instalação
+---
 
-### Opção A: Ambiente Python Local
+### Opção A: Execução Local (Desenvolvimento)
 
-1. **Clone o repositório**:
-   ```bash
-   git clone https://github.com/Fiap-Pos-tech-5MLET/fase-4.git
-   cd fase-4
-   ```
+#### 1. Clone e Instale Dependências
 
-2. **Instale as dependências**:
-   ```bash
-   # Dependências de produção
-   pip install -r requirements.txt
-   
-   # Ou dependências de desenvolvimento (incluindo testes)
-   pip install -r requirements-dev.txt
-   
-   # Ou usando Make
-   make install          # Produção
-   make install-dev      # Desenvolvimento
-   ```
+```bash
+# Clone o repositório
+git clone https://github.com/Fiap-Pos-tech-5MLET/fase-4.git
+cd fase-4
 
-3. **Treine o Modelo**:
-   Antes de rodar a API, você deve treinar o modelo inicial para gerar os artefatos.
-   ```bash
-   # Usando Python
-   python -m src.train
-   
-   # Ou usando Make
-   make train
-   ```
-   *Isso salvará `lstm_model.pth` e `scaler.pkl` em `app/artifacts/`.*
+# Crie um ambiente virtual (recomendado)
+python -m venv venv
 
-4. **Execute a API**:
-   ```bash
-   # Usando uvicorn diretamente
-   python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-   
-   # Ou usando Make
-   make run-api
-   ```
-   A API estará disponível em `http://localhost:8000`
+# Ative o ambiente virtual
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
 
-5. **Execute o Frontend Streamlit (Opcional)**:
-   ```bash
-   # Rodar o dashboard interativo
-   streamlit run streamlit_app.py
-   
-   # Ou usando Make
-   make run-streamlit
-   ```
-   O dashboard estará disponível em `http://localhost:8501`
-   
-   **Recursos do Dashboard:**
-   - 🎯 Interface gráfica para treinar modelos
-   - 📊 Consulta de status de treinamento em tempo real
-   - 🔮 Fazer previsões de duas formas:
-     - Automática: informando apenas o símbolo da ação
-     - Manual: fornecendo 60 preços históricos
+# Instale as dependências
+pip install -r requirements.txt
+```
 
-### Opção B: Contêineres Docker
+#### 2. Configure Variáveis de Ambiente
 
-1. **Construa e Execute**:
-   ```bash
-   docker-compose up --build
-   
-   # Ou usando Make
-   make docker-build
-   make docker-run
-   ```
-   A API estará disponível em `http://localhost:8000`
+Crie um arquivo `.env` na raiz do projeto (opcional):
+```bash
+# .env
+ENVIRONMENT=development
+PROJECT_NAME="TC4: Long Short Term Memory (LSTM)"
+SECRET_KEY=sua-chave-secreta
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+ALGORITHM=HS256
+```
 
-2. **Parar os contêineres**:
-   ```bash
-   docker-compose down
-   ```
+#### 3. Treine o Modelo Inicial
+
+```bash
+# Executar treinamento inicial
+python -m src.train
+
+# Ou usando Make
+make train
+```
+
+Isso criará os artefatos em `app/artifacts/`:
+- `lstm_model.pth` - Modelo treinado
+- `scaler.pkl` - Scaler para normalização
+
+#### 4. Execute a API
+
+```bash
+# Rodar FastAPI
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+# Ou usando Make
+make run-api
+```
+
+**API disponível em:** http://localhost:8000
+**Documentação:** http://localhost:8000/docs
+
+#### 5. Execute o Dashboard Streamlit
+
+Em outro terminal:
+
+```bash
+# Rodar Streamlit
+streamlit run streamlit_app.py --server.port=8501 --server.address=127.0.0.1
+
+# Ou usando Make
+make run-streamlit
+```
+
+**Dashboard disponível em:** http://localhost:8501
+
+**Recursos do Dashboard:**
+- ✅ Interface gráfica intuitiva
+- 🎯 Treinar modelos LSTM com parâmetros customizáveis
+- 📊 Consultar status de treinamento em tempo real
+- 🔮 Fazer previsões de duas formas:
+  - **Automática**: Informe apenas o símbolo da ação (ex: AAPL)
+  - **Manual**: Forneça 60 preços históricos
+
+---
+
+### Opção B: Execução com Docker (Desenvolvimento)
+
+```bash
+# Construir e executar
+docker-compose up --build
+
+# Ou em background
+docker-compose up -d --build
+
+# Parar
+docker-compose down
+```
+
+**Serviços disponíveis:**
+- API: http://localhost:8000
+- Streamlit: http://localhost:8501
+
+---
+
+### Opção C: Deploy em Produção (Render)
+
+#### Arquitetura de Produção
+
+Em produção, todos os serviços rodam em um único container Docker com Nginx como reverse proxy:
+
+```
+Container Docker (Port 80)
+├─ Nginx (Port 80)          → Reverse Proxy
+├─ FastAPI (Port 8000)      → API Backend
+└─ Streamlit (Port 8501)    → Dashboard Frontend
+```
+
+**Gerenciado por Supervisor** (inicia automaticamente os 3 processos)
+
+#### Passo 1: Preparar Repositório
+
+```bash
+# Commitar mudanças
+git add .
+git commit -m "Deploy para produção"
+git push origin main
+```
+
+#### Passo 2: Criar Web Service no Render
+
+1. Acesse [render.com](https://render.com)
+2. Clique em **"New +" → "Web Service"**
+3. Conecte seu repositório GitHub
+4. Configure:
+   - **Name:** `tc4-lstm-api` (ou seu nome preferido)
+   - **Region:** `Oregon` (ou região de sua preferência)
+   - **Branch:** `main`
+   - **Runtime:** `Docker`
+   - **Plan:** `Free` (ou pago para melhor performance)
+
+#### Passo 3: Configurar Variáveis de Ambiente
+
+No painel do Render, adicione as variáveis:
+
+```
+ENVIRONMENT=production
+PROJECT_NAME=TC4: Long Short Term Memory (LSTM)
+SECRET_KEY=sua-chave-secreta-forte
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+ALGORITHM=HS256
+```
+
+#### Passo 4: Deploy
+
+- Render detectará automaticamente o `Dockerfile`
+- O build levará ~5-10 minutos na primeira vez
+- Após concluído, você receberá uma URL: `https://tc4-lstm-api.onrender.com`
+
+#### Passo 5: Acessar a Aplicação
+
+| Serviço | URL em Produção |
+|---------|-----------------|
+| **Landing Page** | `https://tc4-lstm-api.onrender.com/` |
+| **API Docs** | `https://tc4-lstm-api.onrender.com/api/docs` |
+| **Dashboard** | `https://tc4-lstm-api.onrender.com/app` |
+
+**URLs Internas (não acessíveis externamente):**
+- FastAPI: localhost:8000
+- Streamlit: localhost:8501
+
+#### Logs e Debugging
+
+```bash
+# Ver logs do Render
+Acesse: Render Dashboard → Seu serviço → Logs
+
+# Logs mostrarão:
+========================================
+INICIALIZANDO API - TECH CHALLENGE FASE 4
+========================================
+Ambiente: PRODUCTION
+URLs em Produção:
+  - API Docs: /api/docs
+  - Streamlit: /app
+  - Landing Page: /
+========================================
+```
+
+---
+
+### Resumo de URLs
+
+| Ambiente | Landing Page | API Docs | Streamlit |
+|----------|-------------|----------|-----------|
+| **Desenvolvimento** | N/A | http://localhost:8000/docs | http://localhost:8501 |
+| **Produção** | https://seu-app.onrender.com | https://seu-app.onrender.com/api/docs | https://seu-app.onrender.com/app |
 
 ---
 
@@ -599,8 +771,22 @@ LSTMModel(
 
 Assista ao vídeo explicativo do projeto e seu funcionamento:
 - 📹 **Link do vídeo**: [Em breve]
-- 💎 **Link API Publica**: [API](https://fase-1-hkv8.onrender.com)
+- 💎 **Link API Pública**: [API](https://fase-1-hkv8.onrender.com)
 - 📊 **Conteúdo**: Arquitetura, demonstração da API, pipeline de treinamento e resultados
+
+### 📸 Screenshots da Aplicação
+
+#### Landing Page
+![Landing Page](docs/images/tela_principal.png)
+*Página inicial unificando acesso à API e Dashboard*
+
+#### Dashboard Streamlit
+![Dashboard Streamlit](docs/images/stream_lit.png)
+*Interface interativa para treinamento e previsões*
+
+#### API Documentation (Swagger UI)
+![API Docs](docs/images/swagger-ui.png)
+*Documentação interativa da API REST*
 
 ---
 
@@ -626,10 +812,17 @@ Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) par
 
 ## 📚 Documentação Adicional
 
-- [TESTING.md](TESTING.md) - Guia completo de testes e cobertura
-- [TESTING_STRATEGY.md](TESTING_STRATEGY.md) - Estratégia de testes do projeto
-- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Resumo da implementação
-- [.github/copilot-instructions.md](.github/copilot-instructions.md) - Instruções para IA Code Review
+
+### Guias de Testes e Qualidade
+- **[TESTING.md](TESTING.md)** - Guia completo de testes e cobertura
+- **[TESTING_STRATEGY.md](TESTING_STRATEGY.md)** - Estratégia de testes do projeto
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Resumo da implementação
+
+### Guias de Desenvolvimento
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Instruções para IA Code Review
+  - Padrões de qualidade de código
+  - Convenções de nomenclatura
+  - Checklist de revisão
 
 ---
 
