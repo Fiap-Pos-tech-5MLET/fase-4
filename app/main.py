@@ -68,10 +68,33 @@ async def lifespan(app: FastAPI):
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             print(f"Dispositivo de inferência selecionado: {device}")
 
-            # Instancia o modelo vazio com a arquitetura padrão
-            # TODO: Idealmente os hiperparâmetros (hidden_layer_size) deveriam vir de config ou salvo junto
-            model = LSTMModel(input_size=1, hidden_layer_size=50, output_size=1, num_layers=2, dropout=0.2)
-            mode.to(device)
+            # Carregar configuração do modelo (se existir)
+            model_config_path = "app/artifacts/model_config.json"
+            if os.path.exists(model_config_path):
+                import json
+                with open(model_config_path, 'r') as f:
+                    model_config = json.load(f)
+                print(f"Configuração do modelo carregada: {model_config}")
+            else:
+                # Fallback para configuração padrão
+                model_config = {
+                    "input_size": 1,
+                    "hidden_layer_size": 64,  # Atualizado para 64 (padrão do train.py)
+                    "output_size": 1,
+                    "num_layers": 2,
+                    "dropout": 0.2
+                }
+                print("Usando configuração padrão do modelo")
+            
+            # Instancia o modelo com a configuração correta
+            model = LSTMModel(
+                input_size=model_config["input_size"],
+                hidden_layer_size=model_config["hidden_layer_size"],
+                output_size=model_config["output_size"],
+                num_layers=model_config["num_layers"],
+                dropout=model_config["dropout"]
+            )
+            model.to(device)
             
             # Primeiro tenta local
             local_model_path = "app/artifacts/lstm_model.pth"
