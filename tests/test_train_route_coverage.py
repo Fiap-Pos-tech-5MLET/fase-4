@@ -1,8 +1,3 @@
-"""
-Additional tests for train_route.py to improve code coverage.
-Focuses on error handling paths and hot-reload functionality.
-"""
-
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock, mock_open
