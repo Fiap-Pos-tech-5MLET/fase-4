@@ -129,15 +129,21 @@ class TestLoadModel:
         """Testa se os pesos carregados correspondem aos salvos."""
         with tempfile.TemporaryDirectory() as tmpdir:
             model1 = LSTMModel()
+            model1.eval()  # Colocar em eval para desativar dropout
             path = os.path.join(tmpdir, "model.pth")
             save_model(model1, path)
             
             model2 = LSTMModel()
             load_model(model2, path)
+            model2.eval()  # Garantir que está em eval
             
+            # Usar mesmo input e comparar outputs
             x = torch.randn(32, 10, 1)
-            out1 = model1.forward(x)
-            out2 = model2.forward(x)
+            
+            # Garantir que ambos estão em eval mode
+            with torch.no_grad():
+                out1 = model1.forward(x)
+                out2 = model2.forward(x)
             
             assert torch.allclose(out1, out2)
 

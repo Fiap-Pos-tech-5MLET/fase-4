@@ -35,9 +35,10 @@ def evaluate_model(
     with torch.no_grad():
         for seq, labels in test_loader:
             seq = seq.to(device)
+            labels = labels.to(device)  # Mover labels para o mesmo device
             y_pred = model(seq)
             predictions.append(y_pred.cpu().numpy().flatten())
-            actuals.append(labels.numpy().flatten())
+            actuals.append(labels.cpu().numpy().flatten())
     
     # Concatenar e inverter a escala
     predictions = np.concatenate(predictions)

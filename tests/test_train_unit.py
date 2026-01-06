@@ -49,12 +49,18 @@ def test_model_trainer_train_step(mock_model, mock_dataloader):
 @patch("src.train.DataProcessor")
 @patch("src.train.LSTMModel")
 @patch("src.train.ModelTrainer")
-@patch("src.train.evaluate_model")
+@patch("src.train.evaluate_with_loss")
+@patch("src.train.calculate_metrics")
+@patch("src.train.plot_losses")
+@patch("src.train.plot_predictions")
 @patch("src.train.save_model")
 @patch("src.train.joblib.dump")
 @patch("src.train.os.makedirs")
+@patch("src.train.os.path.exists")
+@patch("src.train.torch.save")
 def test_run_training_pipeline_success(
-    mock_makedirs, mock_joblib, mock_save, mock_evaluate, 
+    mock_torch_save, mock_exists, mock_makedirs, mock_joblib, mock_save, 
+    mock_plot_pred, mock_plot_loss, mock_calc_metrics, mock_evaluate_loss,
     mock_trainer_cls, mock_lstm_cls, mock_processor_cls, mock_mlflow
 ):
     """Testa o pipeline de treinamento com sucesso."""
@@ -69,13 +75,32 @@ def test_run_training_pipeline_success(
     
     # Mock Trainer
     mock_trainer = mock_trainer_cls.return_value
-    mock_trainer.train.return_value = [0.1, 0.05]
+    mock_trainer.train.return_value = [0.1, 0.05]  # loss_history
     mock_trainer.device = torch.device('cpu')
     mock_trainer.model = MagicMock()
+    mock_trainer.criterion = MagicMock()
     
-    # Mock Evaluate return numpy arrays to allow np.mean calculation
+    # Mock evaluate_with_loss - retorna (predictions, actuals, test_loss)
     import numpy as np
-    mock_evaluate.return_value = (np.array([1.0, 2.0]), np.array([1.1, 2.1]))
+    mock_evaluate_loss.return_value = (
+        np.array([[1.0], [2.0]]), 
+        np.array([[1.1], [2.1]]),
+        0.0025  # test_loss como float
+    )
+    
+    # Mock calculate_metrics
+    mock_calc_metrics.return_value = {
+        "mae": 2.5,
+        "rmse": 3.2,
+        "mape": 1.8
+    }
+    
+    # Mock plot functions
+    mock_plot_loss.return_value = "app/artifacts/loss_curves.png"
+    mock_plot_pred.return_value = "app/artifacts/predictions.png"
+    
+    # Mock os.path.exists para best_test_loss.txt
+    mock_exists.return_value = False  # Primeiro treino
     
     result = run_training_pipeline(
         symbol='TEST',
@@ -86,12 +111,14 @@ def test_run_training_pipeline_success(
     
     assert "mae" in result
     assert "rmse" in result
+    assert "test_loss" in result
+    assert "is_best_model" in result
     assert result["symbol"] == "TEST"
     
     # Verify calls
     mock_mlflow.start_run.assert_called()
     mock_mlflow.log_params.assert_called()
-    mock_mlflow.log_metric.assert_called()
+    mock_mlflow.log_metrics.assert_called()
     mock_save.assert_called()
 
 @patch("src.train.DataProcessor")
