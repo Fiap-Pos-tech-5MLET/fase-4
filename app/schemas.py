@@ -11,6 +11,7 @@ class TrainRequest(BaseModel):
     num_layers: int = Field(default=2, ge=1, description="Número de camadas LSTM")
     dropout: float = Field(default=0.2, ge=0.0, le=1.0, description="Taxa de dropout")
     hidden_layer_size: int = Field(default=64, ge=0, description="Tamanho da camada oculta")
+    seed: int = Field(default=42, ge=0, description="Seed para reprodutibilidade (garante resultados idênticos)")
 
 class TrainResponse(BaseModel):
     message: str

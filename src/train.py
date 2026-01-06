@@ -11,6 +11,7 @@ from src.data_loader import DataProcessor
 from src.lstm_model import LSTMModel
 from src.utils import save_model
 from src.evaluate import evaluate_model, calculate_metrics, evaluate_with_loss
+from src.seed_manager import set_seed
 from torch.utils.data import DataLoader, TensorDataset
 
 
@@ -99,12 +100,14 @@ def run_training_pipeline(
     learning_rate: float = 0.001,
     num_layers: int = 2,
     dropout: float = 0.2,
-    hidden_layer_size: int = 64 
+    hidden_layer_size: int = 64,
+    seed: int = 42
 ) -> Dict[str, float]:
     """
     Executa o pipeline completo de treinamento do modelo LSTM.
     
     Realiza as seguintes etapas:
+    0. Configuração de seed para reprodutibilidade
     1. Carregamento e processamento de dados
     2. Criação de DataLoaders
     3. Inicialização e treinamento do modelo
@@ -119,11 +122,18 @@ def run_training_pipeline(
         epochs (int): Número de épocas de treinamento. Padrão: 50
         batch_size (int): Tamanho do lote. Padrão: 64
         learning_rate (float): Taxa de aprendizado. Padrão: 0.001
+        num_layers (int): Número de camadas LSTM. Padrão: 2
+        dropout (float): Taxa de dropout. Padrão: 0.2
+        hidden_layer_size (int): Tamanho da camada oculta. Padrão: 64
+        seed (int): Seed para reprodutibilidade. Padrão: 42
     
     Returns:
         Dict[str, float]: Dicionário com símbolo e métricas (MAE, RMSE, MAPE).
                          Em caso de erro, retorna dicionário com mensagem de erro.
     """
+    # 0. Configurar seed para reprodutibilidade
+    set_seed(seed)
+    print(f"Seed configurada para: {seed}")
     mlflow.set_experiment("Stock_Price_Prediction")
     
     with mlflow.start_run():
@@ -137,7 +147,8 @@ def run_training_pipeline(
             "learning_rate": learning_rate,
             "hidden_units": hidden_layer_size,
             "num_layers": num_layers,
-            "dropout": dropout
+            "dropout": dropout,
+            "seed": seed
         })
 
         # 1. Carregamento e Processamento de Dados

@@ -42,7 +42,8 @@ def train_model_task(job_id: str, request: TrainRequest):
             learning_rate=request.learning_rate,
             num_layers=request.num_layers,
             dropout=request.dropout,
-            hidden_layer_size=request.hidden_layer_size
+            hidden_layer_size=request.hidden_layer_size,
+            seed=request.seed
         )
         
         if job_id in JOBS:
