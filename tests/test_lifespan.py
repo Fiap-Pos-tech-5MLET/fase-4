@@ -11,32 +11,53 @@ def mock_app():
 @pytest.mark.asyncio
 async def test_lifespan_load_local_success(mock_app):
     """Testa carregamento bem-sucedido de modelo e scaler locais."""
+    from unittest.mock import mock_open
+    import json
+    
+    # Mock config data
+    mock_config = {
+        "input_size": 1,
+        "hidden_layer_size": 64,
+        "output_size": 1,
+        "num_layers": 2,
+        "dropout": 0.2
+    }
+    
     with patch("app.main.os.path.exists") as mock_exists, \
          patch("app.main.torch.load") as mock_torch_load, \
          patch("app.main.joblib.load") as mock_joblib_load, \
+         patch("app.main.hf_hub_download") as mock_hf_download, \
+         patch("builtins.open", mock_open(read_data=json.dumps(mock_config))), \
          patch("app.main.__SETTINGS__") as mock_settings:
         
-        # Simula existência de arquivos locais
+        # Simula existência de arquivos locais (config, modelo E scaler)
+        # Retorna True para todos os arquivos
         mock_exists.return_value = True
         
-        # Simula state_dict carregado
+        # Simula state_dict carregado via torch.load
         mock_dict = {"state": "dict"}
         mock_torch_load.return_value = mock_dict
+        
+        # Simula scaler carregado via joblib.load
+        mock_scaler = MagicMock()
+        mock_joblib_load.return_value = mock_scaler
         
         # Simula instanciacao do modelo
         with patch("src.lstm_model.LSTMModel") as MockModel:
             mock_instance = MockModel.return_value
             
             async with lifespan(mock_app):
-                # Verifica se tentou carregar model.pth
-                mock_torch_load.assert_called()
-                # Verifica se carregou state_dict no modelo
-                mock_instance.load_state_dict.assert_called_with(mock_dict)
-                # Verifica se scaler foi carregado
-                mock_joblib_load.assert_called()
+                # Verifica se tentou carregar model.pth via torch
+                mock_torch_load.assert_called_once()
                 
-                # Nao deve ter tentado baixar do HF
-                assert not mock_settings.MODEL_REPO_ID.called # Não acessado se local existe (ou algo assim)
+                # Verifica se carregou state_dict no modelo
+                mock_instance.load_state_dict.assert_called_once_with(mock_dict)
+                
+                # Verifica se scaler foi carregado via joblib
+                mock_joblib_load.assert_called_once()
+                
+                # Não deve ter tentado baixar do HF
+                mock_hf_download.assert_not_called()
                 
 @pytest.mark.asyncio
 async def test_lifespan_load_hf_fallback(mock_app):
