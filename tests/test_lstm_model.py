@@ -24,17 +24,20 @@ class TestLSTMModelInit:
 
     def test_init_custom_parameters(self):
         """Testa inicialização com parâmetros customizados."""
-        model = LSTMModel(input_size=5, hidden_layer_size=100, output_size=3)
+        model = LSTMModel(input_size=5, hidden_layer_size=100, output_size=3, num_layers=3, dropout=0.5)
         
         assert model.hidden_layer_size == 100
         assert model.lstm.input_size == 5
         assert model.lstm.hidden_size == 100
+        assert model.lstm.num_layers == 3
+        assert model.lstm.dropout == 0.5
         assert model.linear.out_features == 3
 
     def test_init_lstm_batch_first(self):
         """Testa se LSTM foi configurado com batch_first=True."""
         model = LSTMModel()
         assert model.lstm.batch_first is True
+        assert model.lstm.num_layers == 2 # Default updated
 
     def test_model_is_nn_module(self):
         """Testa se o modelo é uma instância de nn.Module."""
@@ -209,6 +212,9 @@ class TestLSTMModelStateDict:
         
         model2 = LSTMModel()
         model2.load_state_dict(state_dict)
+        
+        model1.eval()
+        model2.eval()
         
         x = torch.randn(32, 10, 1)
         out1 = model1.forward(x)

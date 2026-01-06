@@ -39,7 +39,11 @@ def train_model_task(job_id: str, request: TrainRequest):
             end_date=request.end_date,
             epochs=request.epochs,
             batch_size=request.batch_size,
-            learning_rate=request.learning_rate
+            learning_rate=request.learning_rate,
+            num_layers=request.num_layers,
+            dropout=request.dropout,
+            hidden_layer_size=request.hidden_layer_size,
+            seed=request.seed
         )
         
         if job_id in JOBS:
@@ -51,6 +55,54 @@ def train_model_task(job_id: str, request: TrainRequest):
                  print(f"Job {job_id} completado com sucesso. Métricas: {result}")
                  JOBS[job_id]["status"] = "completed"
                  JOBS[job_id]["result"] = result
+
+                 # === HOT RELOAD ===
+                 # Só recarrega se o modelo for o melhor (foi salvo em lstm_model.pth)
+                 if result.get("is_best_model", False):
+                     try:
+                         print("Iniciando Hot-Reload do modelo e scaler...")
+                         import torch
+                         import joblib
+                         from app.config import get_settings
+                         from src.lstm_model import LSTMModel
+                         
+                         settings = get_settings()
+                         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                         
+                         # Carrega Scaler
+                         scaler_path = "app/artifacts/scaler.pkl"
+                         if os.path.exists(scaler_path):
+                             settings.SCALER = joblib.load(scaler_path)
+                             print("Scaler recarregado.")
+                         else:
+                             print(f"Aviso: Scaler não encontrado em {scaler_path}")
+                         
+                         # Carrega Modelo
+                         model_path = "app/artifacts/lstm_model.pth"
+                         if os.path.exists(model_path):
+                             # Instancia com os mesmos parâmetros do treino
+                             new_model = LSTMModel(
+                                 input_size=1, 
+                                 hidden_layer_size=request.hidden_layer_size, 
+                                 output_size=1, 
+                                 num_layers=request.num_layers, 
+                                 dropout=request.dropout
+                             )
+                             new_model.to(device)
+                             new_model.load_state_dict(torch.load(model_path, map_location=device))
+                             new_model.eval()
+                             settings.MODEL = new_model
+                             print(f"Modelo recarregado com sucesso no dispositivo {device}.")
+                         else:
+                             print(f"Aviso: Modelo não encontrado em {model_path}")
+                             
+                     except Exception as reload_error:
+                         print(f"Erro no Hot-Reload: {reload_error}")
+                         import traceback
+                         traceback.print_exc()
+                         # Não falha o job, mas avisa
+                 else:
+                     print("Modelo não é o melhor. Hot-Reload não executado (mantendo modelo anterior).")
              
     except Exception as e:
         print(f"Job {job_id} falhou com exceção: {e}")

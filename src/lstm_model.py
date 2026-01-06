@@ -15,7 +15,7 @@ class LSTMModel(nn.Module):
         linear (nn.Linear): Camada linear para transformação da saída LSTM.
     """
 
-    def __init__(self, input_size: int = 1, hidden_layer_size: int = 50, output_size: int = 1) -> None:
+    def __init__(self, input_size: int = 1, hidden_layer_size: int = 50, output_size: int = 1, num_layers: int = 2, dropout: float = 0.2) -> None:
         """
         Inicializa o modelo LSTM.
 
@@ -23,10 +23,13 @@ class LSTMModel(nn.Module):
             input_size (int): Número de características de entrada. Padrão: 1
             hidden_layer_size (int): Número de unidades na camada LSTM. Padrão: 50
             output_size (int): Número de características de saída. Padrão: 1
+            num_layers (int): Número de camadas LSTM empilhadas. Padrão: 2
+            dropout (float): Probabilidade de dropout (se num_layers > 1). Padrão: 0.2
         """
         super(LSTMModel, self).__init__()
         self.hidden_layer_size = hidden_layer_size
-        self.lstm = nn.LSTM(input_size, hidden_layer_size, batch_first=True)
+        self.num_layers = num_layers
+        self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers=num_layers, batch_first=True, dropout=dropout if num_layers > 1 else 0)
         self.linear = nn.Linear(hidden_layer_size, output_size)
 
     def forward(self, input_seq: torch.Tensor) -> torch.Tensor:

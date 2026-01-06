@@ -8,6 +8,10 @@ class TrainRequest(BaseModel):
     epochs: int = Field(default=50, ge=1, description="Número de épocas de treinamento")
     batch_size: int = Field(default=64, ge=1, description="Tamanho do lote (batch size)")
     learning_rate: float = Field(default=0.001, gt=0, description="Taxa de aprendizado (learning rate)")
+    num_layers: int = Field(default=2, ge=1, description="Número de camadas LSTM")
+    dropout: float = Field(default=0.2, ge=0.0, le=1.0, description="Taxa de dropout")
+    hidden_layer_size: int = Field(default=64, ge=0, description="Tamanho da camada oculta")
+    seed: int = Field(default=42, ge=0, description="Seed para reprodutibilidade (garante resultados idênticos)")
 
 class TrainResponse(BaseModel):
     message: str

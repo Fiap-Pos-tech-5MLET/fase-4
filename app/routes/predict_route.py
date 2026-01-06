@@ -92,15 +92,17 @@ async def predict_stock_price(request: PredictRequest):
         normalized_data = scaler.transform(input_data)
         
         # Cria tensor (Batch size 1, Sequence Length 60, Features 1)
-        input_tensor = torch.FloatTensor(normalized_data).view(1, 60, 1)
+        # Identifica dispositivo do modelo
+        device = next(model.parameters()).device
+        input_tensor = torch.FloatTensor(normalized_data).view(1, 60, 1).to(device)
         
         # Predição
         model.eval()
         with torch.no_grad():
             predicted_scaled = model(input_tensor)
             
-        # Desnormaliza
-        predicted_price = scaler.inverse_transform(predicted_scaled.numpy())[0][0]
+        # Desnormaliza (move para CPU antes de converter para numpy)
+        predicted_price = scaler.inverse_transform(predicted_scaled.cpu().numpy())[0][0]
         
         return {
             "predicted_price": float(predicted_price),
