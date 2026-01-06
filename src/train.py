@@ -178,13 +178,13 @@ class ModelTrainer:
 def run_training_pipeline(
     symbol: str = 'AAPL',
     start_date: str = '2018-01-01',
-    end_date: str = '2024-07-20',
-    epochs: int = 50,
-    batch_size: int = 64,
+    end_date: str = '2026-01-05',
+    epochs: int = 128,
+    batch_size: int = 15,
     learning_rate: float = 0.001,
-    num_layers: int = 2,
-    dropout: float = 0.2,
-    hidden_layer_size: int = 64,
+    num_layers: int = 1,
+    dropout: float = 0.3,
+    hidden_layer_size: int = 16,
     seed: int = 42
 ) -> Dict[str, float]:
     """
@@ -229,7 +229,7 @@ def run_training_pipeline(
             "epochs": epochs,
             "batch_size": batch_size,
             "learning_rate": learning_rate,
-            "hidden_units": hidden_layer_size,
+            "hidden_layer": hidden_layer_size,
             "num_layers": num_layers,
             "dropout": dropout,
             "seed": seed

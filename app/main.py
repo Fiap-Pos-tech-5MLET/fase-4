@@ -79,10 +79,10 @@ async def lifespan(app: FastAPI):
                 # Fallback para configuração padrão
                 model_config = {
                     "input_size": 1,
-                    "hidden_layer_size": 64,  # Atualizado para 64 (padrão do train.py)
+                    "hidden_layer_size": 16,
                     "output_size": 1,
-                    "num_layers": 2,
-                    "dropout": 0.2
+                    "num_layers": 1,
+                    "dropout": 0.3
                 }
                 print("Usando configuração padrão do modelo")
             
