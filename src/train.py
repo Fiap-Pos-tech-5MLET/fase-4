@@ -210,18 +210,54 @@ def run_training_pipeline(
         
         # 5. Salvamento de Artefatos
         os.makedirs("app/artifacts", exist_ok=True)
-        save_model(model, "app/artifacts/lstm_model.pth")
-        joblib.dump(processor.scaler, "app/artifacts/scaler.pkl")
-        print("Modelo e Scaler salvos.")
         
-        # Log do Modelo no MLflow
+        # Verificar se é o melhor modelo baseado em test_loss
+        best_model_path = "app/artifacts/best_stock_lstm_model.pth"
+        best_loss_file = "app/artifacts/best_test_loss.txt"
+        
+        # Verificar se já existe um melhor modelo
+        best_test_loss = float('inf')
+        if os.path.exists(best_loss_file):
+            try:
+                with open(best_loss_file, 'r') as f:
+                    best_test_loss = float(f.read().strip())
+                print(f"Melhor test_loss anterior: {best_test_loss:.5f}")
+            except:
+                pass
+        
+        # Salvar APENAS se for o melhor modelo
+        if test_loss < best_test_loss:
+            print(f"✅ Novo melhor modelo! Test Loss: {test_loss:.5f} < {best_test_loss:.5f}")
+            
+            # Salvar como melhor modelo (backup)
+            torch.save(model.state_dict(), best_model_path)
+            with open(best_loss_file, 'w') as f:
+                f.write(str(test_loss))
+            
+            # Salvar como modelo de produção (usado pela API)
+            save_model(model, "app/artifacts/lstm_model.pth")
+            joblib.dump(processor.scaler, "app/artifacts/scaler.pkl")
+            print(f"Modelo de produção atualizado: app/artifacts/lstm_model.pth")
+            print(f"Melhor modelo salvo em: {best_model_path}")
+            
+            # Log no MLflow que este é o melhor modelo
+            mlflow.log_metric("is_best_model", 1.0)
+            mlflow.log_artifact(best_model_path)
+        else:
+            print(f"ℹ️  Modelo atual não é o melhor. Test Loss: {test_loss:.5f} >= {best_test_loss:.5f}")
+            print(f"   Mantendo modelo anterior em produção (test_loss: {best_test_loss:.5f})")
+            mlflow.log_metric("is_best_model", 0.0)
+        
+        # Log do Modelo no MLflow (sempre loga o modelo atual, mesmo que não seja o melhor)
         mlflow.pytorch.log_model(model, "lstm_model")
         
         return {
             "symbol": symbol,
             "mae": float(mae),
             "rmse": float(rmse),
-            "mape": float(mape)
+            "mape": float(mape),
+            "test_loss": float(test_loss),
+            "is_best_model": test_loss < best_test_loss
         }
 
 if __name__ == "__main__":
