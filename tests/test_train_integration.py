@@ -40,7 +40,10 @@ def test_predict_route_requires_scaler_and_model():
     """
     # Create fake model and scaler
     mock_model = MagicMock()
-    mock_model.return_value = MagicMock(detach=lambda: MagicMock(numpy=lambda: [[0.5]])) # Mock output tensor
+    mock_model.return_value = MagicMock(detach=lambda: MagicMock(numpy=lambda: [[0.5]], cpu=lambda: MagicMock(numpy=lambda: [[0.5]]))) # Mock output tensor
+    mock_param = MagicMock()
+    mock_param.device = "cpu"
+    mock_model.parameters.return_value = iter([mock_param])
     
     mock_scaler = MagicMock()
     mock_scaler.transform.return_value = [[0.5]] * 60
@@ -73,7 +76,10 @@ def test_predict_route_with_symbol():
     """
     # Create fake model and scaler (same as above)
     mock_model = MagicMock()
-    mock_model.return_value = MagicMock(detach=lambda: MagicMock(numpy=lambda: [[0.5]])) 
+    mock_model.return_value = MagicMock(detach=lambda: MagicMock(numpy=lambda: [[0.5]], cpu=lambda: MagicMock(numpy=lambda: [[0.5]])))
+    mock_param = MagicMock()
+    mock_param.device = "cpu"
+    mock_model.parameters.return_value = iter([mock_param]) 
     mock_scaler = MagicMock()
     mock_scaler.transform.return_value = [[0.5]] * 60
     mock_scaler.inverse_transform.return_value = [[200.0]]
@@ -107,7 +113,10 @@ def test_predict_route_with_dates():
     """
     # Reuse mocks setup logic or duplicate for simplicity in this script
     mock_model = MagicMock()
-    mock_model.return_value = MagicMock(detach=lambda: MagicMock(numpy=lambda: [[0.5]])) 
+    mock_model.return_value = MagicMock(detach=lambda: MagicMock(numpy=lambda: [[0.5]], cpu=lambda: MagicMock(numpy=lambda: [[0.5]])))
+    mock_param = MagicMock()
+    mock_param.device = "cpu"
+    mock_model.parameters.return_value = iter([mock_param]) 
     mock_scaler = MagicMock()
     mock_scaler.transform.return_value = [[0.5]] * 60
     mock_scaler.inverse_transform.return_value = [[200.0]]

@@ -39,7 +39,10 @@ def train_model_task(job_id: str, request: TrainRequest):
             end_date=request.end_date,
             epochs=request.epochs,
             batch_size=request.batch_size,
-            learning_rate=request.learning_rate
+            learning_rate=request.learning_rate,
+            num_layers=request.num_layers,
+            dropout=request.dropout,
+            hidden_layer_size=request.hidden_layer_size
         )
         
         if job_id in JOBS:
@@ -51,6 +54,43 @@ def train_model_task(job_id: str, request: TrainRequest):
                  print(f"Job {job_id} completado com sucesso. Métricas: {result}")
                  JOBS[job_id]["status"] = "completed"
                  JOBS[job_id]["result"] = result
+
+                 # === HOT RELOAD ===
+                 try:
+                     print("Iniciando Hot-Reload do modelo e scaler...")
+                     import torch
+                     import joblib
+                     from app.config import get_settings
+                     from src.lstm_model import LSTMModel
+                     
+                     settings = get_settings()
+                     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                     
+                     # Carrega Scaler
+                     if os.path.exists("app/artifacts/scaler.pkl"):
+                         settings.SCALER = joblib.load("app/artifacts/scaler.pkl")
+                         print("Scaler recarregado.")
+                     
+                     # Carrega Modelo
+                     if os.path.exists("app/artifacts/lstm_model.pth"):
+                         # Instancia com os mesmos parâmetros do treino
+                         new_model = LSTMModel(
+                             input_size=1, 
+                             hidden_layer_size=request.hidden_layer_size, 
+                             output_size=1, 
+                             num_layers=request.num_layers, 
+                             dropout=request.dropout
+                         )
+                         new_model.to(device)
+                         new_model.load_state_dict(torch.load("app/artifacts/lstm_model.pth", map_location=device))
+                         new_model.eval()
+                         settings.MODEL = new_model
+                         print(f"Modelo recarregado com sucesso no dispositivo {device}.")
+                         
+                 except Exception as reload_error:
+                     print(f"Erro no Hot-Reload: {reload_error}")
+                     # Não falha o job, mas avisa
+                     pass
              
     except Exception as e:
         print(f"Job {job_id} falhou com exceção: {e}")

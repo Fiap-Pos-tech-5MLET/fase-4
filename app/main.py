@@ -65,9 +65,13 @@ async def lifespan(app: FastAPI):
         # Tenta baixar/carregar modelo do HuggingFace ou local
         # Se não existir, a API deve subir mesmo assim para permitir o treino
         try:
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            print(f"Dispositivo de inferência selecionado: {device}")
+
             # Instancia o modelo vazio com a arquitetura padrão
             # TODO: Idealmente os hiperparâmetros (hidden_layer_size) deveriam vir de config ou salvo junto
-            model = LSTMModel(input_size=1, hidden_layer_size=50, output_size=1)
+            model = LSTMModel(input_size=1, hidden_layer_size=50, output_size=1, num_layers=2, dropout=0.2)
+            mode.to(device)
             
             # Primeiro tenta local
             local_model_path = "app/artifacts/lstm_model.pth"
@@ -75,7 +79,7 @@ async def lifespan(app: FastAPI):
             state_dict = None
             if os.path.exists(local_model_path):
                  print(f"Carregando modelo local de {local_model_path}...")
-                 state_dict = torch.load(local_model_path, map_location=torch.device('cpu'))
+                 state_dict = torch.load(local_model_path, map_location=device)
             else:
                 # Fallback para HuggingFace se configurado
                  print("Modelo local não encontrado. Tentando HuggingFace...")
@@ -86,9 +90,15 @@ async def lifespan(app: FastAPI):
                      state_dict = loaded
                  else:
                      model = loaded
+                     model.to(device)
             
             if state_dict:
-                model.load_state_dict(state_dict)
+                try:
+                    model.load_state_dict(state_dict)
+                except RuntimeError as re:
+                    print(f"ERRO DE COMPATIBILIDADE: O modelo salvo não corresponde à arquitetura atual ({re}). \n"
+                          "Isso é esperado se você mudou a arquitetura (ex: adicionou camadas). \n"
+                          "O modelo foi inicializado com pesos aleatórios. TREINE O MODELO NOVAMENTE VIA /train.")
             
             model.eval() # Coloca em modo de inferência
             __SETTINGS__.MODEL = model

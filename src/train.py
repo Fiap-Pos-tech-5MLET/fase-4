@@ -10,7 +10,7 @@ from typing import Dict, Tuple, List
 from src.data_loader import DataProcessor
 from src.lstm_model import LSTMModel
 from src.utils import save_model
-from src.evaluate import evaluate_model
+from src.evaluate import evaluate_model, calculate_metrics, evaluate_with_loss
 from torch.utils.data import DataLoader, TensorDataset
 
 
@@ -40,6 +40,14 @@ class ModelTrainer:
         self.criterion = nn.MSELoss()
         self.optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        import sys
+        print(f"--- DEBUG INFO ---")
+        print(f"Python Executable: {sys.executable}")
+        print(f"Torch Version: {torch.__version__}")
+        print(f"CUDA Available: {torch.cuda.is_available()}")
+        print(f"CUDA Version: {torch.version.cuda}")
+        print(f"--- DEBUG INFO ---")
+        print(f"ModelTrainer configurado para usar: {self.device}")
         self.model.to(self.device)
 
     def train(self, train_loader: DataLoader, epochs: int = 10) -> List[float]:
@@ -51,12 +59,15 @@ class ModelTrainer:
             epochs (int): Número de épocas de treinamento. Padrão: 10
         
         Returns:
-            List[float]: Lista com o histórico de perdas por época.
+            List[float]: Lista com o histórico de perdas médias por época.
         """
         self.model.train()
         loss_history = []
+        
         for i in range(epochs):
-            batch_loss = 0
+            epoch_loss = 0.0
+            num_batches = 0
+            
             for seq, labels in train_loader:
                 seq = seq.to(self.device)
                 labels = labels.to(self.device)
@@ -67,12 +78,15 @@ class ModelTrainer:
                 single_loss = self.criterion(y_pred.squeeze(), labels)
                 single_loss.backward()
                 self.optimizer.step()
-                batch_loss = single_loss.item()
+                
+                epoch_loss += single_loss.item()
+                num_batches += 1
 
-            loss_history.append(batch_loss)
+            avg_loss = epoch_loss / num_batches
+            loss_history.append(avg_loss)
 
-            if i % 5 == 0:
-                print(f'Época: {i} Perda: {batch_loss:.5f}')
+            print(f'Época: {i}/{epochs} Perda Média: {avg_loss:.5f}')   
+        
         return loss_history
 
 
@@ -82,7 +96,10 @@ def run_training_pipeline(
     end_date: str = '2024-07-20',
     epochs: int = 50,
     batch_size: int = 64,
-    learning_rate: float = 0.001
+    learning_rate: float = 0.001,
+    num_layers: int = 2,
+    dropout: float = 0.2,
+    hidden_layer_size: int = 64 
 ) -> Dict[str, float]:
     """
     Executa o pipeline completo de treinamento do modelo LSTM.
@@ -118,7 +135,9 @@ def run_training_pipeline(
             "epochs": epochs,
             "batch_size": batch_size,
             "learning_rate": learning_rate,
-            "hidden_units": 50
+            "hidden_units": hidden_layer_size,
+            "num_layers": num_layers,
+            "dropout": dropout
         })
 
         # 1. Carregamento e Processamento de Dados
@@ -137,24 +156,34 @@ def run_training_pipeline(
         test_loader = DataLoader(test_data, shuffle=False, batch_size=batch_size)
         
         # 2. Inicialização do Modelo
-        model = LSTMModel(input_size=1, hidden_layer_size=50, output_size=1)
+        model = LSTMModel(input_size=1, hidden_layer_size=hidden_layer_size, output_size=1, num_layers=num_layers, dropout=dropout)
         trainer = ModelTrainer(model, lr=learning_rate)
         
         # 3. Treinamento do Modelo
         print(f"Iniciando Treinamento para {symbol}...")
         loss_history = trainer.train(train_loader, epochs=epochs)
         
-        # Log de perda de treinamento
+        # Log de train_loss por época
         for epoch, loss in enumerate(loss_history):
             mlflow.log_metric("train_loss", loss, step=epoch)
         
         # 4. Avaliação do Modelo
         print("Avaliando Modelo...")
-        predictions, actuals = evaluate_model(trainer.model, test_loader, processor.scaler, trainer.device)
+        predictions, actuals, test_loss = evaluate_with_loss(
+            trainer.model, 
+            test_loader, 
+            processor.scaler, 
+            trainer.device,
+            trainer.criterion
+        )
         
-        mae = np.mean(np.abs(predictions - actuals))
-        rmse = np.sqrt(np.mean((predictions - actuals)**2))
-        mape = np.mean(np.abs((predictions - actuals) / actuals)) * 100
+        print(f"Test Loss (MSE): {test_loss:.5f}")
+        
+        # Calcular métricas usando a função existente
+        metrics = calculate_metrics(predictions, actuals)
+        mae = metrics["mae"]
+        rmse = metrics["rmse"]
+        mape = metrics["mape"]
         
         print(f"MAE: {mae:.2f}")
         print(f"RMSE: {rmse:.2f}")
@@ -162,6 +191,7 @@ def run_training_pipeline(
         
         # Log de Métricas
         mlflow.log_metrics({
+            "test_loss": test_loss,
             "mae": mae,
             "rmse": rmse,
             "mape": mape
