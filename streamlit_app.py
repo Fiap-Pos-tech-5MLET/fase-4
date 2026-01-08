@@ -40,7 +40,7 @@ import os
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Permite sobrescrever o destino da API via variável (ex.: apontar para API hospedada)
-API_BASE_URL = os.getenv("API_BASE_URL") or "https://fase-1-hkv8.onrender.com" 
+API_BASE_URL = os.getenv("API_BASE_URL") or "https://fase-1-hkv8.onrender.com/api" 
 
 TRAIN_ENDPOINT = f"{API_BASE_URL}/train"
 STATUS_ENDPOINT = f"{API_BASE_URL}/train/status"
