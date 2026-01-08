@@ -15,9 +15,9 @@ ENV/
 .idea/
 
 # Project Artifacts (Generated Models & Scalers)
-app/artifacts/
-*.pth
-*.pkl
+app/artifacts/*.png
+#*.pth
+#*.pkl
 
 # Logs
 *.log
