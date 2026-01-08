@@ -40,7 +40,7 @@ import os
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Permite sobrescrever o destino da API via variável (ex.: apontar para API hospedada)
-API_BASE_URL = os.getenv("API_BASE_URL") or "https://fase-1-hkv8.onrender.com/api"  
+API_BASE_URL = os.getenv("API_BASE_URL") or "https://fase-1-hkv8.onrender.com/api" 
 
 TRAIN_ENDPOINT = f"{API_BASE_URL}/train"
 STATUS_ENDPOINT = f"{API_BASE_URL}/train/status"
@@ -438,7 +438,7 @@ def renderizar_rodape() -> None:
 # FUNÇÃO PRINCIPAL
 # =============================
 
-#def main() -> None:
+def main() -> None:
     """
     Função principal da aplicação Streamlit.
 
@@ -450,19 +450,19 @@ def renderizar_rodape() -> None:
     - Rodapé
     """
     # Configuração da página (deve ser a primeira chamada Streamlit)
-st.set_page_config(
+    st.set_page_config(
         page_title=PAGE_TITLE,
         layout=PAGE_LAYOUT,
         initial_sidebar_state="auto"
     )
 
     # Interface principal
-st.title("Aplicação de Machine Learning")
+    st.title("Aplicação de Machine Learning")
     
     # Info sobre ambiente e API (Streamlit roda local; API pode estar remota)
-info_api = f"**API Backend:** `{API_BASE_URL}`"
+    info_api = f"**API Backend:** `{API_BASE_URL}`"
 
-st.markdown(
+    st.markdown(
         f"""
         Este app permite:
         - Treinar modelos LSTM para previsão de ações
@@ -475,15 +475,15 @@ st.markdown(
     )
 
     # Seções da aplicação
-renderizar_status_treinamento()
-renderizar_secao_treinamento()
-renderizar_secao_previsao()
-renderizar_rodape()
+    renderizar_status_treinamento()
+    renderizar_secao_treinamento()
+    renderizar_secao_previsao()
+    renderizar_rodape()
 
 
 # =============================
 # EXECUÇÃO
 # =============================
 
-#if __name__ == "__main__":
-#    main()
+if __name__ == "__main__":
+    main()
