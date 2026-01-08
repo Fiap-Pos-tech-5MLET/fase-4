@@ -85,7 +85,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 ### Arquitetura em Produção (Render) — Apenas API
 
 ```
-        https://fase-1-hkv8.onrender.com
+        https://fase-4-hkv8.onrender.com
           │
           ▼
         ┌──────────────────┐
@@ -109,7 +109,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 ```
 
 **Fluxo de Produção:**
-1. Cliente acessa `https://fase-1-hkv8.onrender.com/`
+1. Cliente acessa `https://fase-4-hkv8.onrender.com/`
 2. Nginx serve landing (opcional) ou redireciona para `/api/docs`
 3. Requisições para `/api/*` vão para FastAPI (:8000)
 4. O dashboard Streamlit **não é servido em produção**; execute localmente apontando para a API
@@ -161,6 +161,7 @@ fase-4/
 │   ├── lstm_model.py                # Definição da Rede Neural LSTM
 │   ├── train.py                     # Pipeline de treinamento do modelo
 │   ├── evaluate.py                  # Avaliação e métricas do modelo
+│   ├── seed_manager.py              # Gerenciamento de seeds para reprodutibilidade
 │   └── utils.py                     # Funções auxiliares (save/load modelo)
 │
 ├── tests/
@@ -169,10 +170,15 @@ fase-4/
 │   ├── test_utils.py                # Testes de utils (100% cobertura)
 │   ├── test_evaluate.py             # Testes de avaliação (100% cobertura)
 │   ├── test_preprocessing.py        # Testes de pré-processamento
+│   ├── test_data_loader.py          # Testes de carregamento de dados
 │   ├── test_config.py               # Testes de configuração
 │   ├── test_main.py                 # Testes da API
+│   ├── test_lifespan.py             # Testes de ciclo de vida da aplicação
 │   ├── test_audit_route.py          # Testes de rotas de auditoria
-│   └── test_train_integration.py    # Testes de integração (Treino/Predição)
+│   ├── test_reproducibility.py      # Testes de reprodutibilidade
+│   ├── test_train_integration.py    # Testes de integração (Treino/Predição)
+│   ├── test_train_route_coverage.py # Testes de cobertura da rota de treino
+│   └── test_train_unit.py           # Testes unitários de treinamento
 │
 ├── notebooks/                       # Notebooks Jupyter para exploração
 │
@@ -231,15 +237,16 @@ pip install -r requirements.txt
 
 #### 2. Configure Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto (opcional):
+Crie um arquivo `.env` na raiz do projeto (opcional, para customização):
 ```bash
 # .env
-ENVIRONMENT=development
 PROJECT_NAME="TC4: Long Short Term Memory (LSTM)"
-SECRET_KEY=sua-chave-secreta
+SECRET_KEY=5MLET
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 ALGORITHM=HS256
 ```
+
+> **Nota**: A maioria das configurações possui valores padrão. O arquivo `.env` é opcional e só necessário se você precisar customizar algum valor.
 
 #### 3. Treine o Modelo Inicial
 
@@ -402,7 +409,7 @@ URLs em Produção:
 | Ambiente | Landing Page | API Docs | Streamlit |
 |----------|-------------|----------|-----------|
 | **Desenvolvimento** | N/A | http://localhost:8000/api/docs | http://localhost:8501 |
-| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | **Local apenas** (apontar `API_BASE_URL` para a URL da API)
+| **Produção** | https://fase-4-hkv8.onrender.com | https://fase-4-hkv8.onrender.com/api/docs | **Local apenas** (apontar `API_BASE_URL` para a URL da API)
 
 ---
 
