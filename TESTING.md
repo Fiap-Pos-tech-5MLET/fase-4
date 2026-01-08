@@ -22,7 +22,15 @@ tests/
 ├── test_utils.py                # Testes de salvar/carregar modelos (100% cobertura)
 ├── test_evaluate.py             # Testes de avaliação e métricas (100% cobertura)
 ├── test_preprocessing.py        # Testes de pré-processamento
-└── test_model.py                # Testes adicionais do modelo
+├── test_data_loader.py          # Testes de carregamento de dados
+├── test_config.py               # Testes de configuração da aplicação
+├── test_main.py                 # Testes da API FastAPI
+├── test_lifespan.py             # Testes de ciclo de vida da aplicação
+├── test_audit_route.py          # Testes de rotas de auditoria
+├── test_reproducibility.py      # Testes de reprodutibilidade de seeds
+├── test_train_integration.py    # Testes de integração (Treino/Predição)
+├── test_train_route_coverage.py # Testes de cobertura da rota de treino
+└── test_train_unit.py           # Testes unitários de treinamento
 ```
 
 ### Módulos Testados
@@ -54,11 +62,32 @@ tests/
 - ✓ Scaler customizado
 - ✓ Suporte a CPU/CUDA
 
-#### 4. `src/train.py` - ModelTrainer
-**Em desenvolvimento**: Testes completos pendentes
-- Inicialização do treinador
-- Loop de treinamento
-- Histórico de perda
+#### 4. `src/data_loader.py` - Data Loading
+**Cobertura**: ~90%
+- ✓ Carregamento de dados do Yahoo Finance
+- ✓ Tratamento de datas
+- ✓ Validação de símbolos de ações
+- ✓ Tratamento de erros de conexão
+
+#### 5. `src/seed_manager.py` - Seed Management
+**Cobertura**: ~95%
+- ✓ Configuração de seeds para reprodutibilidade
+- ✓ Gerenciamento de seeds PyTorch, NumPy e Python
+- ✓ Verificação de consistência
+
+#### 6. `src/train.py` - ModelTrainer
+**Cobertura**: ~90%
+- ✓ Inicialização do treinador
+- ✓ Loop de treinamento
+- ✓ Histórico de perda
+- ✓ Integração com MLflow
+
+#### 7. `app/main.py` - API FastAPI
+**Cobertura**: ~90%
+- ✓ Endpoints de saúde
+- ✓ Ciclo de vida da aplicação
+- ✓ Carregamento de modelos
+- ✓ Tratamento de erros
 
 ---
 
@@ -86,8 +115,12 @@ pytest --cov=src --cov-report=html
 | lstm_model.py | 100% | ✓ Completo |
 | utils.py | 100% | ✓ Completo |
 | evaluate.py | 100% | ✓ Completo |
-| train.py | ~60% | ⚠ Em progresso |
-| **TOTAL** | **~95%** | ✓ Acima do mínimo |
+| data_loader.py | ~90% | ✓ Acima do mínimo |
+| seed_manager.py | ~95% | ✓ Acima do mínimo |
+| preprocessing.py | ~90% | ✓ Acima do mínimo |
+| train.py | ~90% | ✓ Acima do mínimo |
+| main.py (API) | ~90% | ✓ Acima do mínimo |
+| **TOTAL** | **~92%** | ✓ Aprovado |mínimo |
 
 ---
 
@@ -390,5 +423,5 @@ pytest --cache-clear tests/
 
 ---
 
-**Última atualização**: Dezembro 2024
-**Maintainer**: GitHub Copilot
+**Última atualização**: Janeiro 2026
+**Maintainer**: Equipe 5MLET

@@ -34,7 +34,15 @@ tests/
 ├── test_utils.py            # Testes de utilitários (100%)
 ├── test_evaluate.py         # Testes de avaliação (100%)
 ├── test_preprocessing.py    # Testes de pré-processamento
-└── test_model.py            # Testes adicionais
+├── test_data_loader.py      # Testes de carregamento de dados
+├── test_config.py           # Testes de configuração
+├── test_main.py             # Testes da API FastAPI
+├── test_lifespan.py         # Testes de ciclo de vida
+├── test_audit_route.py      # Testes de rotas de auditoria
+├── test_reproducibility.py  # Testes de reprodutibilidade
+├── test_train_integration.py    # Testes de integração
+├── test_train_route_coverage.py # Testes de cobertura da rota
+└── test_train_unit.py       # Testes unitários de treino
 ```
 
 ### Convenções de Nomenclatura
@@ -201,28 +209,67 @@ def test_calculate_metrics_mae_calculation(self):
     assert np.isclose(result['mae'], expected_mae)
 ```
 
-### 3.4 train.py (~60%)
+### 3.4 data_loader.py (~90%)
+
+**Funções**: `load_stock_data`, `validate_symbol`
+
+**Testes Implementados**:
+- load_stock_data
+  - [x] Carregamento bem-sucedido de dados
+  - [x] Tratamento de símbolos inválidos
+  - [x] Validação de intervalo de datas
+  - [x] Tratamento de erros de conexão
+  - [x] Formatação de dados retornados
+
+- validate_symbol
+  - [x] Símbolos válidos
+  - [x] Símbolos inválidos
+  - [x] Casos especiais
+
+**Cobertura Obtida**: ~90%
+
+### 3.5 seed_manager.py (~95%)
+
+**Funções**: `set_seed`, `get_seed`, `ensure_reproducibility`
+
+**Testes Implementados**:
+- set_seed
+  - [x] Define seed para PyTorch
+  - [x] Define seed para NumPy
+  - [x] Define seed para Python random
+  - [x] Configurações de CUDA
+
+- ensure_reproducibility
+  - [x] Garante resultados determinísticos
+  - [x] Verificação de consistência
+  - [x] Repetição de resultados
+
+**Cobertura Obtida**: ~95%
+
+### 3.6 train.py (~90%)
 
 **Classes/Funções**: `ModelTrainer`, `run_training_pipeline`
 
-**Testes Pendentes**:
+**Testes Implementados**:
 - ModelTrainer.__init__
-  - [ ] Inicializa corretamente
-  - [ ] MSELoss como critério
-  - [ ] Adam como otimizador
-  - [ ] Device management
+  - [x] Inicializa corretamente
+  - [x] MSELoss como critério
+  - [x] Adam como otimizador
+  - [x] Device management
 
 - ModelTrainer.train
-  - [ ] Executa treinamento
-  - [ ] Retorna loss_history
-  - [ ] Loss diminui ao longo do tempo
-  - [ ] Modo train ativado
+  - [x] Executa treinamento
+  - [x] Retorna loss_history
+  - [x] Loss diminui ao longo do tempo
+  - [x] Modo train ativado
 
 - run_training_pipeline
-  - [ ] Executa pipeline completo
-  - [ ] Retorna métricas
-  - [ ] Salva artefatos
-  - [ ] Logging MLflow
+  - [x] Executa pipeline completo
+  - [x] Retorna métricas
+  - [x] Salva artefatos
+  - [x] Logging MLflow
+
+**Cobertura Obtida**: ~90%
 
 ---
 
@@ -531,11 +578,11 @@ pytest --cache-clear tests/
 
 ---
 
-## 10. Métricas Atuais (Dezembro 2024)
+## 10. Métricas Atuais (Janeiro 2026)
 
 | Métrica | Status | Alvo |
 |---------|--------|------|
-| Coverage | 95% | >= 90% ✓ |
+| Coverage | 92% | >= 90% ✓ |
 | Tests | Todos passam | 100% ✓ |
 | Lint warnings | 0 | 0 ✓ |
 | Type errors | 0 | 0 ✓ |
@@ -553,6 +600,6 @@ pytest --cache-clear tests/
 
 ---
 
-**Última Atualização**: Dezembro 2024  
-**Mantido por**: GitHub Copilot  
+**Última Atualização**: Janeiro 2026  
+**Mantido por**: Equipe 5MLET  
 **Status**: Ativo ✓
