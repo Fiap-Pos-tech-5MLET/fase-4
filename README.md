@@ -85,7 +85,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 ### Arquitetura em Produção (Render) — Apenas API
 
 ```
-        https://fase-4-hkv8.onrender.com
+        https://fase-1-hkv8.onrender.com
           │
           ▼
         ┌──────────────────┐
@@ -109,7 +109,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 ```
 
 **Fluxo de Produção:**
-1. Cliente acessa `https://fase-4-hkv8.onrender.com/`
+1. Cliente acessa `https://fase-1-hkv8.onrender.com/`
 2. Nginx serve landing (opcional) ou redireciona para `/api/docs`
 3. Requisições para `/api/*` vão para FastAPI (:8000)
 4. O dashboard Streamlit **não é servido em produção**; execute localmente apontando para a API
@@ -409,7 +409,7 @@ URLs em Produção:
 | Ambiente | Landing Page | API Docs | Streamlit |
 |----------|-------------|----------|-----------|
 | **Desenvolvimento** | N/A | http://localhost:8000/api/docs | http://localhost:8501 |
-| **Produção** | https://fase-4-hkv8.onrender.com | https://fase-4-hkv8.onrender.com/api/docs | **Local apenas** (apontar `API_BASE_URL` para a URL da API)
+| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | **Local apenas** (apontar `API_BASE_URL` para a URL da API)
 
 ---
 
