@@ -112,7 +112,7 @@ O sistema é construído sobre uma arquitetura modular e escalável com suporte 
 1. Cliente acessa `https://fase-1-hkv8.onrender.com/`
 2. Nginx serve landing (opcional) ou redireciona para `/api/docs`
 3. Requisições para `/api/*` vão para FastAPI (:8000)
-4. O dashboard Streamlit **não é servido em produção**; execute localmente apontando para a API
+4. O dashboard Streamlit está disponível em: `https://techchallenge-mle-fase4-luzeftatf3j7qqktggfiii.streamlit.app/`
 
 ### Componentes Principais
 
@@ -326,7 +326,7 @@ streamlit run streamlit_app.py --server.port=8501 --server.address=127.0.0.1
 
 #### Arquitetura de Produção
 
-Em produção, apenas a **API FastAPI** é servida. O dashboard Streamlit roda localmente, apontando para a URL da API.
+Em produção, a **API FastAPI** é servida no Render e o **Streamlit** no Streamlit Community Cloud.
 
 ```
 Container Docker (Port 80)
@@ -379,7 +379,7 @@ ALGORITHM=HS256
 
 | Serviço | URL em Produção |
 |---------|-----------------|
-| **Landing Page** | `https://tc4-lstm-api.onrender.com/` |
+| **Streamlit** | `https://techchallenge-mle-fase4-luzeftatf3j7qqktggfiii.streamlit.app/` |
 | **API Docs** | `https://tc4-lstm-api.onrender.com/api/docs` |
 
 **URLs Internas (não acessíveis externamente):**
@@ -409,7 +409,7 @@ URLs em Produção:
 | Ambiente | Landing Page | API Docs | Streamlit |
 |----------|-------------|----------|-----------|
 | **Desenvolvimento** | N/A | http://localhost:8000/api/docs | http://localhost:8501 |
-| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | **Local apenas** (apontar `API_BASE_URL` para a URL da API)
+| **Produção** | https://fase-1-hkv8.onrender.com | https://fase-1-hkv8.onrender.com/api/docs | https://techchallenge-mle-fase4-luzeftatf3j7qqktggfiii.streamlit.app/
 
 ---
 
