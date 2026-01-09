@@ -18,6 +18,7 @@
 
 ---
 
+
 ## 📝 Sobre o Projeto
 
 Este repositório contém a implementação do **Tech Challenge Fase 4 da Pós-Graduação em Machine Learning**, focado na construção de um sistema completo de previsão de preços de ações utilizando **Deep Learning**. O projeto implementa uma rede neural **LSTM (Long Short-Term Memory)**, eficaz para dados sequenciais, para capturar padrões temporais do mercado de ações e prever preços de fechamento.
